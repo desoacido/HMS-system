@@ -1,0 +1,16 @@
+symptom,temp,hr,bp,age,smoking,breastfeeding,category
+cough,37.0,80,120,0,0,0,Check-up
+fever,38.5,95,130,0,0,0,Check-up
+headache,37.2,85,125,0,0,0,Check-up
+chest pain,37.5,110,140,0,0,0,Check-up
+cold,36.5,75,115,0,0,0,Check-up
+BCG,36.5,100,100,1,0,0,Immunization
+Pentavalent,36.7,105,90,1,0,0,Immunization
+Hepatitis B,36.6,110,95,1,0,0,Immunization
+Measles,36.8,102,100,1,0,0,Immunization
+Polio Vaccine,36.5,108,105,1,0,0,Immunization
+Consultation,36.6,72,120,25,1,0,Family Planning
+Family Planning,36.4,75,110,30,0,1,Family Planning
+Pills,36.5,70,115,22,0,0,Family Planning
+Injectable,36.7,78,125,28,1,1,Family Planning
+Implant,36.6,74,120,35,0,0,Family Planning
