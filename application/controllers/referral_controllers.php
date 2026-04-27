@@ -22,7 +22,7 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
     $height = $_POST['height'] ?? '';
     $notes = $_POST['notes'] ?? '';
 
-    // SAVE IMMUNIZATION
+    // SAVE IMMUNIZATION VISIT
     $stmt = $conn->prepare("
         INSERT INTO patient_visits
         (patient_id, category, notes, bp, temperature, heart_rate, weight, height, created_by)
@@ -46,20 +46,18 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
 
         $ref = $conn->prepare("
             INSERT INTO referrals
-            (patient_id, consultation_id, reason, status, created_by)
+            (patient_id, purpose, status, created_by)
             VALUES
-            (:patient_id, :consultation_id, :reason, :status, :created_by)
+            (:patient_id, :purpose, :status, :created_by)
         ");
 
         $ref->execute([
             ':patient_id' => $patient_id,
-            ':consultation_id' => null,
-            ':reason' => 'Immunization (Vaccine: ' . $notes . ')',
-            ':status' => 'Pending',
+            ':purpose' => 'Immunization - ' . $notes,
+            ':status' => 'pending',
             ':created_by' => $_SESSION['user_id']
         ]);
 
-        // ✅ MESSAGE STYLE YOU WANT
         echo "<h2 style='color:green;'>✅ Successfully Referred!</h2>";
         echo "<p>Patient referral has been sent to Nurse.</p>";
 
@@ -70,9 +68,6 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
     }
 
     echo "<br>";
-
-    echo '<a href="/hms2/presentation/bhw/patient_list.php">
-            ⬅ Back to Patient List
-          </a>';
+    echo '<a href="/hms2/presentation/bhw/patient_list.php">⬅ Back to Patient List</a>';
 }
 ?>

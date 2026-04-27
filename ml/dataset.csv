@@ -1,16 +1,66 @@
-symptom,temp,hr,bp,age,smoking,breastfeeding,category
-cough,37.0,80,120,0,0,0,Check-up
-fever,38.5,95,130,0,0,0,Check-up
-headache,37.2,85,125,0,0,0,Check-up
-chest pain,37.5,110,140,0,0,0,Check-up
-cold,36.5,75,115,0,0,0,Check-up
-BCG,36.5,100,100,1,0,0,Immunization
-Pentavalent,36.7,105,90,1,0,0,Immunization
-Hepatitis B,36.6,110,95,1,0,0,Immunization
-Measles,36.8,102,100,1,0,0,Immunization
-Polio Vaccine,36.5,108,105,1,0,0,Immunization
-Consultation,36.6,72,120,25,1,0,Family Planning
-Family Planning,36.4,75,110,30,0,1,Family Planning
-Pills,36.5,70,115,22,0,0,Family Planning
-Injectable,36.7,78,125,28,1,1,Family Planning
-Implant,36.6,74,120,35,0,0,Family Planning
+symptom,temp,hr,bp,age,smoking,breastfeeding,category,recommendation
+cough,37.0,80,120,0,0,0,Check-up,Advise rest and increase fluid intake; Give cough relief medication; Monitor for 3 days
+fever,38.5,95,130,0,0,0,Check-up,Administer antipyretic; Advise tepid sponge bath; Refer to physician if fever exceeds 39C
+headache,37.2,85,125,0,0,0,Check-up,Check blood pressure; Advise rest in quiet environment; Give analgesic if needed
+chest pain,37.5,110,140,0,0,0,Check-up,Urgent physician referral; Monitor vital signs closely; Do not leave patient unattended
+cold,36.5,75,115,0,0,0,Check-up,Advise rest and warm fluids; Recommend decongestant; Monitor for secondary infection
+BCG,36.5,100,100,1,0,0,Immunization,Administer BCG intradermally on left upper arm; Record in immunization card; Advise mother on normal reactions
+Pentavalent,36.7,105,90,1,0,0,Immunization,Give Pentavalent IM on anterolateral thigh; Record dose and batch number; Schedule next dose in 4 weeks
+Hepatitis B,36.6,110,95,1,0,0,Immunization,Administer Hepatitis B vaccine IM; Record in immunization card; Remind for next dose schedule
+Measles,36.8,102,100,1,0,0,Immunization,Administer Measles vaccine subcutaneously; Observe child for 15 minutes post-injection; Record in card
+Polio Vaccine,36.5,108,105,1,0,0,Immunization,Give 2 drops Oral Polio Vaccine; Do not feed or give water 30 minutes after; Record in immunization card
+Consultation,36.6,72,120,25,1,0,Family Planning,Counsel on smoking cessation; Discuss suitable family planning methods; Schedule follow-up in 1 month
+Family Planning,36.4,75,110,30,0,1,Family Planning,Counsel on breastfeeding-compatible methods such as LAM or POP; Provide method and follow-up schedule
+Pills,36.5,70,115,22,0,0,Family Planning,Dispense 3-month supply of combined oral contraceptive; Remind patient to take daily at the same time
+Injectable,36.7,78,125,28,1,1,Family Planning,Administer DMPA injectable; Counsel on smoking risk with hormonal methods; Schedule next injection in 3 months
+Implant,36.6,74,120,35,0,0,Family Planning,Insert subdermal implant on upper arm; Provide post-insertion care instructions; Schedule follow-up in 1 week
+cough,37.0,80,120/80,25,0,0,Check-up,Advise rest and increase fluid intake; Give cough relief medication; Monitor for 3 days
+fever,38.5,95,130/85,30,0,0,Check-up,Administer antipyretic; Advise tepid sponge bath; Refer to physician if fever exceeds 39C
+headache,37.2,85,125/80,45,1,0,Check-up,Check blood pressure; Advise rest and reduce stress; Counsel on smoking cessation due to hypertension risk
+chest pain,37.5,110,140/90,55,1,0,Check-up,Urgent physician referral; Monitor ECG if available; Advise smoking cessation immediately
+cold,36.5,75,115/75,10,0,0,Check-up,Advise rest and warm fluids; Recommend decongestant; Monitor for secondary infection
+BCG vaccine,36.5,100,100/70,1,0,0,Immunization,Administer BCG intradermally on left upper arm; Record in immunization card; Advise mother on normal reactions
+Pentavalent dose,36.7,105,90/60,1,0,0,Immunization,Give Pentavalent IM on anterolateral thigh; Record dose and batch number; Schedule next dose in 4 weeks
+Hepatitis B shot,36.6,110,95/65,1,0,0,Immunization,Administer Hepatitis B vaccine IM; Record in immunization card; Remind for next dose schedule
+Measles vaccine,36.8,102,100/70,1,0,0,Immunization,Administer Measles vaccine subcutaneously; Observe child for 15 minutes post-injection; Record in card
+Polio Oral,36.5,108,105/70,1,0,0,Immunization,Give 2 drops Oral Polio Vaccine; Do not feed or give water 30 minutes after; Record in immunization card
+Consultation FP,36.6,72,120/80,25,1,0,Family Planning,Counsel on smoking cessation; Discuss suitable non-hormonal family planning methods; Schedule follow-up in 1 month
+Family Planning,36.4,75,110/70,30,0,1,Family Planning,Counsel on breastfeeding-compatible methods such as LAM or POP; Provide method and follow-up schedule
+Pills refill,36.5,70,115/75,22,0,0,Family Planning,Dispense 3-month supply of combined oral contraceptive; Remind patient to take daily at the same time
+Injectable DMPA,36.7,78,125/80,28,1,1,Family Planning,Administer DMPA injectable; Counsel on smoking risk with hormonal methods; Schedule next injection in 3 months
+Implant insertion,36.6,74,120/80,35,0,0,Family Planning,Insert subdermal implant on upper arm; Provide post-insertion care instructions; Schedule follow-up in 1 week
+Ubo at sipon,37.8,88,110/70,5,0,0,Check-up,Advise warm fluids and rest; Give age-appropriate cough syrup; Monitor temperature; Return if no improvement in 3 days
+Nilalagnat,39.0,100,120/80,12,0,0,Check-up,Administer weight-appropriate antipyretic; Advise tepid sponge bath; Increase oral fluid intake; Refer if fever persists beyond 2 days
+Masakit ang ulo,37.1,82,145/95,50,1,0,Check-up,Monitor and record blood pressure; Advise smoking cessation; Give analgesic; Refer to physician if BP remains elevated
+Nahihilo at naduduwal,36.9,90,150/100,60,0,0,Check-up,Check blood pressure; Advise to sit or lie down; Refer to physician immediately due to very high BP reading
+Masakit ang tiyan,37.4,85,110/70,20,0,0,Check-up,Assess location and nature of pain; Advise light diet and rest; Refer to physician if pain is severe or persistent
+Nagtatae,38.2,92,100/60,18,0,0,Check-up,Administer ORS to prevent dehydration; Advise BRAT diet; Monitor for blood in stool; Refer if diarrhea persists beyond 2 days
+Sakit ng katawan,36.8,78,120/80,40,0,0,Check-up,Advise rest and adequate hydration; Give analgesic for pain relief; Recommend warm compress on affected areas
+Ngalay ang likod,36.6,76,125/85,55,0,0,Check-up,Advise proper posture and light stretching; Apply warm compress; Give analgesic if needed; Refer if pain is chronic
+Bakuna laban sa tigdas,36.7,105,95/60,1,0,0,Immunization,Administer Measles vaccine subcutaneously; Observe child for 15 minutes post-injection; Record in immunization card
+Turok para sa baby,36.5,110,100/70,1,0,0,Immunization,Verify due vaccines from immunization card; Administer appropriate vaccine; Record batch number and date; Schedule next visit
+Anti-tetanus,36.9,80,120/80,30,0,0,Immunization,Administer tetanus toxoid IM on deltoid; Record in immunization card; Advise on possible soreness at injection site
+Pills birth control,36.6,72,110/70,24,0,0,Family Planning,Dispense combined oral contraceptive pills; Counsel on correct and consistent use; Schedule follow-up in 3 months
+Magpapa-injectable,36.8,75,115/75,29,0,1,Family Planning,Administer DMPA injectable; Counsel on breastfeeding compatibility; Schedule next injection in 3 months
+Condom request,36.5,70,120/80,26,1,0,Family Planning,Provide condom supply with proper use instructions; Counsel on dual protection; Encourage STI screening
+IUD checkup,36.7,74,125/80,33,0,0,Family Planning,Check IUD strings for proper placement; Assess for any side effects or complications; Schedule annual follow-up
+Masakit lalamunan,37.5,85,115/75,22,0,0,Check-up,Advise warm saline gargles and increase fluid intake; Give analgesic and throat lozenges; Refer if symptoms worsen after 3 days
+Pangangati ng balat,36.6,78,110/70,15,0,0,Check-up,Assess type and extent of skin rash; Give antihistamine for itching; Advise to avoid scratching; Refer to physician if spreading
+Masakit ang batok,37.0,88,160/100,58,1,0,Check-up,Monitor blood pressure closely; Advise smoking cessation immediately; Give analgesic; Urgent physician referral due to very high BP
+Hingal at pagod,37.2,105,140/90,65,1,0,Check-up,Assess respiratory rate and oxygen saturation; Advise rest; Refer urgently to physician due to elevated HR and BP in elderly patient
+Trangkaso,38.8,98,120/80,28,0,0,Check-up,Advise bed rest and increase fluid intake; Administer antipyretic; Give antiviral if within 48 hours of onset; Monitor for complications
+Beke o Mumps,38.1,90,110/70,8,0,0,Check-up,Advise isolation to prevent spread; Apply warm or cold compress on swollen area; Administer antipyretic; Ensure adequate hydration
+Chicken pox,37.9,88,110/70,10,0,0,Check-up,Advise isolation; Apply calamine lotion on lesions; Give antihistamine for itching; Trim fingernails; Refer if lesions become infected
+Asthma attack,37.0,110,130/80,20,1,0,Check-up,Assist with bronchodilator inhaler; Position patient upright; Monitor oxygen saturation; Refer immediately if no improvement within 15 minutes
+Hi-blood pressure,36.8,95,170/110,52,1,0,Check-up,Urgent referral to physician; Monitor BP every 15 minutes; Advise smoking cessation; Counsel on low-sodium diet and medication compliance
+Magtatanong sa pills,36.5,72,110/70,21,0,0,Family Planning,Counsel on oral contraceptive options; Discuss benefits and possible side effects; Dispense initial supply and set follow-up schedule
+Belly ache,37.3,84,115/75,14,0,0,Check-up,Assess location and nature of abdominal pain; Advise light diet; Refer to physician if pain is localized or accompanied by vomiting
+Muscle pain,36.9,80,120/80,38,0,0,Check-up,Advise rest and apply warm compress; Give analgesic for pain relief; Encourage light stretching after pain subsides
+Stomach cramps,37.5,88,110/70,25,0,0,Check-up,Assess for diarrhea or vomiting; Administer ORS if dehydrated; Give antispasmodic if needed; Refer if pain is severe or persistent
+Vaccine for infant,36.6,108,100/70,1,0,0,Immunization,Verify due vaccines from immunization card; Administer appropriate vaccine; Record batch number and date; Schedule next immunization visit
+1st dose vaccine,36.7,112,95/65,1,0,0,Immunization,Administer first dose of recommended vaccine; Record in immunization card; Advise mother on possible reactions; Schedule 2nd dose
+Prenatal checkup,36.8,85,110/70,27,0,1,Check-up,Monitor weight and blood pressure and fetal heartbeat; Request urinalysis and CBC; Counsel on proper nutrition and prenatal vitamins
+UTI symptoms,37.6,82,120/80,30,0,0,Check-up,Advise increase in fluid intake especially water; Request urinalysis; Refer to physician for antibiotic prescription; Advise proper hygiene
+Arthritis,36.7,76,130/85,70,0,0,Check-up,Advise joint protection and light exercise; Apply warm compress; Give analgesic; Refer to physician for long-term management plan
+Dengue suspect,39.5,115,90/60,15,0,0,Check-up,Urgent referral to physician; Monitor vital signs every 30 minutes; Check for bleeding signs; Encourage oral rehydration if conscious
+Birth control advice,36.5,74,115/75,23,0,0,Family Planning,Counsel on available family planning methods; Assess suitability based on health history; Provide chosen method and schedule follow-up

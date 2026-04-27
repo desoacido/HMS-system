@@ -6,24 +6,31 @@ $message = "";
 
 if (isset($_POST['add_patient'])) {
 
-    // INSERT PATIENT (NO QR YET)
+    // GET INPUT
+    $birthday = $_POST['birthdate'];
+
+    // CALCULATE AGE
+    $birthDate = new DateTime($birthday);
+    $today = new DateTime();
+    $age = $birthDate->diff($today)->y;
+
+    // INSERT PATIENT
     $stmt = $conn->prepare("INSERT INTO patients 
-        (first_name, last_name, age, birthday, address, contact_number, qr_code)
+        (first_name, last_name, birthdate, address, contact_number, qr_code)
         VALUES 
-        (:first, :last, :age, :birthday, :address, :contact, NULL)");
+        (:first, :last, :birthdate, :address, :contact, NULL)");
 
     $stmt->execute([
         ':first' => $_POST['first_name'],
         ':last' => $_POST['last_name'],
-        ':age' => $_POST['age'],
-        ':birthday' => $_POST['birthday'],
+        ':birthdate' => $birthday,
         ':address' => $_POST['address'],
         ':contact' => $_POST['contact_number']
     ]);
 
     $patient_id = $conn->lastInsertId();
 
-    // QR folder
+    // QR FOLDER
     $path = "../../qrcodes/";
     if (!file_exists($path)) {
         mkdir($path, 0777, true);
@@ -35,6 +42,7 @@ if (isset($_POST['add_patient'])) {
 
     QRcode::png($data, $file, QR_ECLEVEL_L, 6);
 
+    // UPDATE QR
     $stmt = $conn->prepare("UPDATE patients SET qr_code = :qr WHERE id = :id");
     $stmt->execute([
         ':qr' => "qrcodes/patient_" . $patient_id . ".png",
@@ -49,7 +57,6 @@ if (isset($_POST['add_patient'])) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Add Patient</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -60,17 +67,6 @@ if (isset($_POST['add_patient'])) {
 body{
     background:#f4f7fb;
     padding:25px;
-}
-
-.back{
-    display:inline-block;
-    margin-bottom:15px;
-    text-decoration:none;
-    color:#555;
-    background:white;
-    padding:8px 12px;
-    border-radius:8px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.05);
 }
 
 .container{
@@ -84,16 +80,14 @@ body{
 
 h2{
     margin-bottom:15px;
-    color:#333;
 }
 
 input{
     width:100%;
     padding:10px;
     margin-bottom:10px;
-    border-radius:8px;
     border:1px solid #ccc;
-    outline:none;
+    border-radius:8px;
 }
 
 button{
@@ -107,26 +101,18 @@ button{
     cursor:pointer;
 }
 
-button:hover{
-    opacity:0.9;
-}
-
 .success{
     background:#e8f5e9;
-    color:#1b5e20;
     padding:10px;
     border-radius:8px;
-    margin-bottom:15px;
-    font-size:14px;
+    margin-bottom:10px;
+    color:#1b5e20;
 }
-
 </style>
 </head>
 
 <body>
-
 <a href="/hms2/presentation/bhw/dashboard.php" class="back">⬅ Back to Dashboard</a>
-
 <div class="container">
 
 <h2>Add Patient</h2>
@@ -138,10 +124,13 @@ button:hover{
 <form method="POST">
 
     <input type="text" name="first_name" placeholder="First Name" required>
+
     <input type="text" name="last_name" placeholder="Last Name" required>
-    <input type="number" name="age" placeholder="Age" required>
-    <input type="date" name="birthday" required>
+
+    <input type="date" name="birthdate" required>
+
     <input type="text" name="address" placeholder="Address" required>
+
     <input type="text" name="contact_number" placeholder="Contact Number" required>
 
     <button type="submit" name="add_patient">Add Patient</button>

@@ -1,25 +1,13 @@
 <?php
-
 $host = "localhost";
-$port = "5432";
 $dbname = "hms";
-$user = "postgres";
-$password = "sweet";
+$username = "root";
+$password = "";
 
 try {
-    $conn = new PDO(
-        "pgsql:host=$host;port=$port;dbname=$dbname",
-        $user,
-        $password
-    );
-
-    // set error mode to exception
+    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // echo "Connected successfully"; // optional test
-
 } catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+    die("Connection failed: " . $e->getMessage());
 }
-
 ?>

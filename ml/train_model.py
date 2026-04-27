@@ -1,33 +1,34 @@
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-import pickle
+from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
+import os
 
-# 1. LOAD DATA
-data = pd.read_csv("dataset.csv")
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# Linisin ang column names para sigurado (tanggalin ang extra spaces)
-data.columns = data.columns.str.strip()
+df = pd.read_csv('dataset.csv')
+df = df[df['symptom'] != 'symptom'].dropna()
 
-# 2. ENCODE SYMPTOM
-le_symptom = LabelEncoder()
-data['symptom'] = le_symptom.fit_transform(data['symptom'])
+print(f"Success: dataset.csv loaded! Rows: {len(df)}")
 
-# 3. ENCODE CATEGORY (Dito natin binago ang pangalan)
-le_category = LabelEncoder()
-data['category_encoded'] = le_category.fit_transform(data['category'])
+X_text = df['symptom'].astype(str)
 
-# 4. FEATURES (7 Columns)
-X = data[['symptom', 'temp', 'hr', 'bp', 'age', 'smoking', 'breastfeeding']]
-y = data['category_encoded']
+# --- CATEGORY MODEL ---
+vectorizer = TfidfVectorizer()
+X_vec = vectorizer.fit_transform(X_text)
 
-# 5. TRAIN
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X, y)
+cat_model = RandomForestClassifier(n_estimators=100, random_state=42)
+cat_model.fit(X_vec, df['category'])
 
-# 6. SAVE
-pickle.dump(model, open("model.pkl", "wb"))
-pickle.dump(le_symptom, open("le_symptom.pkl", "wb"))
-pickle.dump(le_category, open("le_label.pkl", "wb")) # Ni-save ko pa rin as le_label.pkl para di na tayo magbago ng predict.py
+# --- RECOMMENDATION MODEL ---
+rec_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rec_model.fit(X_vec, df['recommendation'])
 
-print("✅ SUCCESS: Model trained with Check-up, Immunization, and Family Planning!")
+joblib.dump(cat_model,   'medical_model.pkl')
+joblib.dump(rec_model,   'recommendation_model.pkl')
+joblib.dump(vectorizer,  'vectorizer.pkl')
+
+print("-" * 30)
+print("SUCCESS: All models saved!")
+print(f"Categories: {df['category'].unique()}")
+print("-" * 30)

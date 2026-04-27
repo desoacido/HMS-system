@@ -138,7 +138,17 @@ img {
 
     <td><?= $p['first_name'] . " " . $p['last_name'] ?></td>
 
-    <td><?= $p['age'] ?></td>
+    <td>
+        <?php
+            if (!empty($p['birthdate'])) {
+                $birthDate = new DateTime($p['birthdate']);
+                $today = new DateTime();
+                echo $birthDate->diff($today)->y;
+            } else {
+                echo "N/A";
+            }
+        ?>
+    </td>
 
     <td><?= $p['contact_number'] ?></td>
 
@@ -158,23 +168,3 @@ img {
     </td>
 </tr>
 <?php endforeach; ?>
-
-</table>
-</div>
-
-<script>
-document.getElementById("searchInput").addEventListener("keyup", function () {
-    let filter = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#patientTable tr");
-
-    for (let i = 1; i < rows.length; i++) {
-        let row = rows[i];
-        let text = row.innerText.toLowerCase();
-
-        row.style.display = text.includes(filter) ? "" : "none";
-    }
-});
-</script>
-
-</body>
-</html>

@@ -12,39 +12,48 @@ $success = false;
 
 if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
 
-    $stmt = $conn->prepare("INSERT INTO patient_visits 
-        (patient_id, category, notes, bp, temperature, heart_rate, weight, height, created_by)
-        VALUES 
-        (:patient_id, :category, :notes, :bp, :temp, :hr, :weight, :height, :created_by)");
+    try {
 
-    $stmt->execute([
-        ':patient_id' => $patient_id,
-        ':category' => 'Check-up',
-        ':notes' => $_POST['notes'],
-        ':bp' => $_POST['bp'],
-        ':temp' => $_POST['temperature'],
-        ':hr' => $_POST['heart_rate'],
-        ':weight' => $_POST['weight'],
-        ':height' => $_POST['height'],
-        ':created_by' => $_SESSION['user_id']
-    ]);
-
-    if (isset($_POST['save_and_referral'])) {
-        $ref = $conn->prepare("INSERT INTO referrals 
-            (patient_id, consultation_id, reason, status, created_by)
+        // 1. INSERT PATIENT VISIT
+        $stmt = $conn->prepare("INSERT INTO patient_visits 
+            (patient_id, category, notes, bp, temperature, heart_rate, weight, height, created_by)
             VALUES 
-            (:patient_id, :consultation_id, :reason, :status, :created_by)");
+            (:patient_id, :category, :notes, :bp, :temp, :hr, :weight, :height, :created_by)");
 
-        $ref->execute([
+        $stmt->execute([
             ':patient_id' => $patient_id,
-            ':consultation_id' => null,
-            ':reason' => 'Check-up Assessment',
-            ':status' => 'pending',
+            ':category' => 'Check-up', // fixed standard category
+            ':notes' => $_POST['notes'] ?? '',
+            ':bp' => $_POST['bp'] ?? '',
+            ':temp' => $_POST['temperature'] ?? null,
+            ':hr' => $_POST['heart_rate'] ?? null,
+            ':weight' => $_POST['weight'] ?? null,
+            ':height' => $_POST['height'] ?? null,
             ':created_by' => $_SESSION['user_id']
         ]);
-    }
 
-    $success = true;
+        // 2. SAVE REFERRAL ONLY IF REQUESTED
+        if (isset($_POST['save_and_referral'])) {
+
+            $ref = $conn->prepare("INSERT INTO referrals 
+                (patient_id, consultation_id, purpose, status, created_by)
+                VALUES 
+                (:patient_id, :consultation_id, :purpose, :status, :created_by)");
+
+            $ref->execute([
+                ':patient_id' => $patient_id,
+                ':consultation_id' => null,
+                ':purpose' => 'Check-up Assessment', // FIXED (no reason column)
+                ':status' => 'pending',
+                ':created_by' => $_SESSION['user_id']
+            ]);
+        }
+
+        $success = true;
+
+    } catch (Exception $e) {
+        die("Error: " . $e->getMessage());
+    }
 }
 ?>
 
@@ -85,12 +94,7 @@ body{
     box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
-h2{
-    margin-bottom:15px;
-    color:#333;
-}
-
-h3,h4{margin-top:10px;}
+h2{margin-bottom:15px;color:#333;}
 
 input,textarea{
     width:100%;
@@ -98,7 +102,6 @@ input,textarea{
     margin-bottom:10px;
     border-radius:8px;
     border:1px solid #ccc;
-    outline:none;
 }
 
 textarea{resize:none;height:80px;}
@@ -106,7 +109,6 @@ textarea{resize:none;height:80px;}
 .buttons{
     display:flex;
     gap:10px;
-    flex-wrap:wrap;
 }
 
 button{
@@ -142,7 +144,6 @@ button{
     color:#555;
     text-decoration:none;
 }
-
 </style>
 </head>
 
@@ -159,7 +160,7 @@ button{
     <div class="success">✔ Check-up saved successfully</div>
 
     <?php if (isset($_POST['save_and_referral'])): ?>
-        <div class="success">📩 Referral sent to Nurse</div>
+        <div class="success">📩 Referral sent successfully</div>
     <?php endif; ?>
 
     <div class="links">

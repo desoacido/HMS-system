@@ -5,239 +5,314 @@ include '../../application/includes/session_check.php';
 $id = $_GET['id'] ?? null;
 if (!$id) die("Invalid referral ID");
 
+/* GET REFERRAL */
 $stmt = $conn->prepare("
-    SELECT r.*, p.first_name, p.last_name 
-    FROM referrals r 
-    JOIN patients p ON r.patient_id = p.id 
+    SELECT r.*, p.first_name, p.last_name
+    FROM referrals r
+    JOIN patients p ON r.patient_id = p.id
     WHERE r.id = :id
 ");
 $stmt->execute([':id' => $id]);
-$ref = $stmt->fetch(PDO::FETCH_ASSOC);
+$ref = $stmt->fetch();
 
 if (!$ref) die("Referral not found");
 
-// UPDATE STATUS
+/* AUTO SET IN PROGRESS */
 if ($ref['status'] == 'Pending') {
-    $conn->prepare("UPDATE referrals SET status = 'In Progress' WHERE id = :id")
-         ->execute([':id' => $id]);
+    $conn->prepare("
+        UPDATE referrals 
+        SET status = 'In Progress' 
+        WHERE id = :id
+    ")->execute([':id' => $id]);
     $ref['status'] = 'In Progress';
 }
 
-// VISITS
-$visitStmt = $conn->prepare("
-    SELECT * FROM patient_visits 
-    WHERE patient_id = :pid 
+/* GET LATEST VISIT */
+$v = $conn->prepare("
+    SELECT * FROM patient_visits
+    WHERE patient_id = :pid
     ORDER BY created_at DESC
+    LIMIT 1
 ");
-$visitStmt->execute([':pid' => $ref['patient_id']]);
-$visits = $visitStmt->fetchAll(PDO::FETCH_ASSOC);
+$v->execute([':pid' => $ref['patient_id']]);
+$checkup = $v->fetch();
 
-// AI DATA
-$ai_label = $ref['ai_validation_label'] ?? '';
-$raw_score = (float)($ref['ai_validation_score'] ?? 0);
+/* ML PROCESS */
+if (isset($_POST['submit_nurse'])) {
 
-$ai_score = ($raw_score > 100) ? $raw_score / 100 : $raw_score;
-if ($ai_score < 1) $ai_score *= 100;
+    $assessment     = $_POST['assessment'] ?? '';
+    $assessment_low = strtolower($assessment);
 
-$recommendation = "";
-$box_color = "#f8f9fa";
-$text_color = "#333";
-
-if (!empty($ai_label)) {
-    switch($ai_label) {
-
-        case 'Immunization':
-            $recommendation = "Verify vaccine age suitability. Monitor side effects.";
-            $box_color = "#d4edda"; $text_color = "#155724";
-            break;
-
-        case 'Family Planning':
-            $recommendation = "Provide counseling and assess contraindications.";
-            $box_color = "#cce5ff"; $text_color = "#004085";
-            break;
-
-        case 'Urgent':
-            $recommendation = "Immediate referral to physician. Monitor vitals closely.";
-            $box_color = "#f8d7da"; $text_color = "#721c24";
-            break;
-
-        default:
-            $recommendation = "Continue standard monitoring and assessment.";
-            $box_color = "#fff3cd"; $text_color = "#856404";
+    // STEP 1: Determine symptom keyword FIRST
+    if (strpos($assessment_low, 'fever') !== false || strpos($assessment_low, 'lagnat') !== false || strpos($assessment_low, 'nilalagnat') !== false) {
+        $symptom = 'fever';
+    } elseif (strpos($assessment_low, 'cough') !== false || strpos($assessment_low, 'ubo') !== false) {
+        $symptom = 'cough';
+    } elseif (strpos($assessment_low, 'headache') !== false || strpos($assessment_low, 'masakit ang ulo') !== false) {
+        $symptom = 'headache';
+    } elseif (strpos($assessment_low, 'cold') !== false || strpos($assessment_low, 'sipon') !== false) {
+        $symptom = 'cold';
+    } elseif (strpos($assessment_low, 'chest pain') !== false) {
+        $symptom = 'chest pain';
+    } elseif (strpos($assessment_low, 'vaccine') !== false || strpos($assessment_low, 'immunization') !== false || strpos($assessment_low, 'bakuna') !== false || strpos($assessment_low, 'turok') !== false) {
+        $symptom = 'BCG vaccine';
+    } elseif (strpos($assessment_low, 'prenatal') !== false || strpos($assessment_low, 'pregnant') !== false) {
+        $symptom = 'Prenatal checkup';
+    } elseif (strpos($assessment_low, 'pills') !== false || strpos($assessment_low, 'birth control') !== false) {
+        $symptom = 'Pills';
+    } elseif (strpos($assessment_low, 'injectable') !== false || strpos($assessment_low, 'dmpa') !== false) {
+        $symptom = 'Injectable DMPA';
+    } elseif (strpos($assessment_low, 'implant') !== false) {
+        $symptom = 'Implant';
+    } elseif (strpos($assessment_low, 'family planning') !== false || strpos($assessment_low, 'condom') !== false || strpos($assessment_low, 'iud') !== false) {
+        $symptom = 'Family Planning';
+    } elseif (strpos($assessment_low, 'diarrhea') !== false || strpos($assessment_low, 'nagtatae') !== false) {
+        $symptom = 'Nagtatae';
+    } elseif (strpos($assessment_low, 'asthma') !== false) {
+        $symptom = 'Asthma attack';
+    } elseif (strpos($assessment_low, 'dengue') !== false) {
+        $symptom = 'Dengue suspect';
+    } elseif (strpos($assessment_low, 'hypertension') !== false || strpos($assessment_low, 'high blood') !== false || strpos($assessment_low, 'hi-blood') !== false) {
+        $symptom = 'Hi-blood pressure';
+    } elseif (strpos($assessment_low, 'uti') !== false) {
+        $symptom = 'UTI symptoms';
+    } elseif (strpos($assessment_low, 'arthritis') !== false) {
+        $symptom = 'Arthritis';
+    } elseif (strpos($assessment_low, 'muscle') !== false) {
+        $symptom = 'Muscle pain';
+    } elseif (strpos($assessment_low, 'stomach') !== false || strpos($assessment_low, 'tiyan') !== false) {
+        $symptom = 'Stomach cramps';
+    } else {
+        $symptom = 'headache'; // safe default that exists in dataset
     }
+
+    $temp    = $checkup['temperature'] ?? 0;
+    $hr      = $checkup['heart_rate']  ?? 0;
+    $bp      = $checkup['bp']          ?? '0/0';
+    $purpose = $ref['purpose']         ?? 'general';
+
+    // STEP 2: Build command AFTER symptom is set
+    $command = "python C:/xampp/htdocs/hms2/ml/predict.py "
+        . escapeshellarg($symptom) . " "
+        . escapeshellarg($temp)    . " "
+        . escapeshellarg($hr)      . " "
+        . escapeshellarg($bp)      . " "
+        . escapeshellarg(0)        . " "
+        . escapeshellarg(0)        . " "
+        . escapeshellarg(0)        . " "
+        . escapeshellarg($purpose)
+        . " 2>&1";
+
+    // STEP 3: Run ML
+    $output    = shell_exec($command);
+    $label     = "Unknown";
+    $score     = 0;
+    $recommend = "No recommendation available.";
+
+    if (!empty($output)) {
+        $parts = explode('|', trim($output));
+        if (count($parts) >= 3) {
+            $label     = trim($parts[0]);
+            $score     = floatval(trim($parts[1]));
+            $recommend = trim($parts[2]);
+            if ($score > 0 && $score <= 1) $score *= 100;
+        } elseif (count($parts) == 2) {
+            $label = trim($parts[0]);
+            $score = floatval(trim($parts[1]));
+            if ($score > 0 && $score <= 1) $score *= 100;
+        }
+    }
+
+    // STEP 4: Save everything to DB (make sure ai_recommendation column exists)
+    $conn->prepare("
+        UPDATE referrals
+        SET nurse_assessment    = :a,
+            ai_validation_label = :l,
+            ai_validation_score = :s,
+            ai_recommendation   = :r,
+            status              = 'Completed'
+        WHERE id = :id
+    ")->execute([
+        ':a'  => $assessment,
+        ':l'  => $label,
+        ':s'  => $score,
+        ':r'  => $recommend,
+        ':id' => $id
+    ]);
+
+    header("Location: view_referral.php?id=" . $id);
+    exit;
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Referral Details</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+body {
+    font-family: Poppins, sans-serif;
+    background: #f4f7fb;
+    padding: 20px;
 }
-
-body{
-    background:#f4f7fb;
-    padding:25px;
+.container {
+    max-width: 900px;
+    margin: auto;
 }
-
-.container{
-    max-width:950px;
-    margin:auto;
+.header {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
 }
-
-/* HEADER CARD */
-.card{
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 10px 20px rgba(0,0,0,0.08);
-    margin-bottom:20px;
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
 }
-
-/* ML BOX */
-.ml-box{
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
+.badge-status {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: white;
+    margin-top: 6px;
 }
+.status-pending     { background: #f39c12; }
+.status-in-progress { background: #3498db; }
+.status-completed   { background: #2ecc71; }
 
-/* TEXTAREA */
-textarea{
-    width:100%;
-    height:90px;
-    padding:12px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    outline:none;
-    margin-top:5px;
+textarea {
+    width: 100%;
+    height: 110px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: Poppins, sans-serif;
+    resize: vertical;
 }
-
-/* BUTTON */
-.btn{
-    background:#007bff;
-    color:white;
-    padding:12px 20px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:600;
+.btn-ml {
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
 }
+.btn-ml:hover { background: #0056b3; }
 
-.btn:hover{
-    opacity:0.9;
+.ai-box {
+    background: #e8f5e9;
+    border-left: 5px solid #2ecc71;
 }
-
-/* HISTORY */
-.history{
-    background:white;
-    padding:15px;
-    margin:10px 0;
-    border-left:5px solid #007bff;
-    border-radius:8px;
-    box-shadow:0 5px 10px rgba(0,0,0,0.05);
+.ai-box h3 { color: #27ae60; }
+.recommend-box {
+    background: #f0f8ff;
+    border-left: 4px solid #4facfe;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.7;
 }
-
-/* BACK BUTTON */
-.back{
-    display:inline-block;
-    margin-bottom:15px;
-    text-decoration:none;
-    color:#555;
-    font-weight:600;
+.info-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+.info-chip {
+    background: #f0f4ff;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #333;
 }
 </style>
 </head>
 
 <body>
-
+    <a href="../nurse/dashboard.php">⬅ Back to Dashboard</a>
 <div class="container">
 
-<a href="/hms2/presentation/nurse/dashboard.php" class="back">
-    ⬅ Back to Dashboard
-</a>
-
-<h2>📋 Referral Details</h2>
-
-<div class="card">
-    <p><b>Patient:</b> <?= htmlspecialchars($ref['first_name']." ".$ref['last_name']) ?></p>
-    <p><b>Reason:</b> <?= htmlspecialchars($ref['reason']) ?></p>
-    <p><b>Status:</b> <b style="color:#007bff;"><?= strtoupper($ref['status']) ?></b></p>
-</div>
-
-<?php if (!empty($ai_label)): ?>
-<div class="ml-box" style="background:<?= $box_color ?>; color:<?= $text_color ?>;">
-    <h3>🤖 AI Validation</h3>
-    <p><b>Classification:</b> <?= htmlspecialchars($ai_label) ?></p>
-    <p><b>Confidence:</b> <?= number_format($ai_score, 2) ?>%</p>
-
-    <div style="margin-top:10px;">
-        <b>Recommendations:</b><br>
-        <?= $recommendation ?>
+    <!-- HEADER -->
+    <div class="header">
+        <h2 class="mb-1">👤 <?= htmlspecialchars($ref['first_name'] . ' ' . $ref['last_name']) ?></h2>
+        <?php
+            $statusClass = match(strtolower($ref['status'])) {
+                'pending'     => 'status-pending',
+                'in progress' => 'status-in-progress',
+                'completed'   => 'status-completed',
+                default       => 'status-pending'
+            };
+        ?>
+        <span class="badge-status <?= $statusClass ?>">
+            <?= htmlspecialchars($ref['status']) ?>
+        </span>
     </div>
-</div>
-<?php endif; ?>
 
-<div class="card">
-
-<h3>🩺 Nurse Assessment</h3>
-
-<form action="../../application/controllers/nursecontroller.php" method="POST">
-
-<input type="hidden" name="referral_id" value="<?= $ref['id'] ?>">
-<input type="hidden" name="patient_id" value="<?= $ref['patient_id'] ?>">
-
-<label>Assessment</label>
-<textarea name="assessment" required>
-<?= htmlspecialchars($ref['nurse_assessment'] ?? '') ?>
-</textarea>
-
-<br><br>
-
-<label>Diagnosis</label>
-<textarea name="diagnosis">
-<?= htmlspecialchars($ref['nurse_diagnosis'] ?? '') ?>
-</textarea>
-
-<br><br>
-
-<button type="submit" name="submit_nurse" class="btn">
-    💾 Save & Trigger ML
-</button>
-
-</form>
-
-</div>
-
-<h3>📋 Visit History</h3>
-
-<?php if (!empty($visits)): ?>
-    <?php foreach ($visits as $v): ?>
-        <div class="history">
-            <b><?= htmlspecialchars($v['category']) ?></b>
-            <small>(<?= date('M d, Y', strtotime($v['created_at'])) ?>)</small>
-            <br><br>
-            BP: <?= $v['bp'] ?> |
-            Temp: <?= $v['temperature'] ?>°C |
-            HR: <?= $v['heart_rate'] ?> bpm
-            <br>
-            Notes: <?= htmlspecialchars($v['notes']) ?>
+    <!-- REFERRAL INFO -->
+    <div class="card">
+        <h5>📋 Referral Info</h5>
+        <div class="info-row">
+            <div class="info-chip">📌 Purpose: <?= htmlspecialchars($ref['purpose'] ?? 'N/A') ?></div>
+            <div class="info-chip">📅 Date: <?= $ref['created_at'] ?? 'N/A' ?></div>
         </div>
-    <?php endforeach; ?>
-<?php else: ?>
-    <p>No visit history found.</p>
-<?php endif; ?>
+    </div>
+
+    <!-- BHW LATEST VISIT -->
+    <div class="card">
+        <h5>🏥 BHW Latest Visit</h5>
+        <div class="info-row">
+            <div class="info-chip">🩸 BP: <?= htmlspecialchars($checkup['bp'] ?? 'N/A') ?></div>
+            <div class="info-chip">🌡️ Temp: <?= htmlspecialchars($checkup['temperature'] ?? 'N/A') ?>°C</div>
+            <div class="info-chip">💓 HR: <?= htmlspecialchars($checkup['heart_rate'] ?? 'N/A') ?> bpm</div>
+        </div>
+        <div class="mt-3">
+            <b>Notes:</b> <?= htmlspecialchars($checkup['notes'] ?? 'N/A') ?>
+        </div>
+    </div>
+
+    <!-- NURSE ASSESSMENT FORM -->
+    <?php if ($ref['status'] != 'Completed'): ?>
+    <div class="card">
+        <h5>🩺 Nurse Assessment</h5>
+        <form method="POST">
+            <textarea name="assessment" placeholder="Enter clinical assessment here (e.g. patient has fever and cough...)" required></textarea>
+            <button type="submit" name="submit_nurse" class="btn-ml">🤖 Trigger ML & Save</button>
+        </form>
+    </div>
+
+    <!-- AI RESULT (after completed) -->
+    <?php else: ?>
+    <div class="card ai-box">
+        <h3>🤖 AI Result</h3>
+        <div class="info-row">
+            <div class="info-chip">🏷️ Classification: <b><?= htmlspecialchars($ref['ai_validation_label'] ?? 'N/A') ?></b></div>
+            <div class="info-chip">📊 Confidence: <b><?= number_format($ref['ai_validation_score'] ?? 0, 2) ?>%</b></div>
+        </div>
+
+        <div class="recommend-box">
+            <b>📋 Nurse Recommendation:</b><br>
+            <?= htmlspecialchars($ref['ai_recommendation'] ?? 'No recommendation available.') ?>
+        </div>
+
+        <?php if (!empty($ref['nurse_assessment'])): ?>
+        <div class="mt-3">
+            <b>📝 Nurse Notes:</b><br>
+            <small class="text-muted"><?= htmlspecialchars($ref['nurse_assessment']) ?></small>
+        </div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
 </div>
-
 </body>
 </html>
