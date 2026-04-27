@@ -43,7 +43,7 @@ if (isset($_POST['submit_nurse'])) {
     $assessment     = $_POST['assessment'] ?? '';
     $assessment_low = strtolower($assessment);
 
-    // STEP 1: Determine symptom keyword FIRST
+    // STEP 1: Determine symptom keyword
     if (strpos($assessment_low, 'fever') !== false || strpos($assessment_low, 'lagnat') !== false || strpos($assessment_low, 'nilalagnat') !== false) {
         $symptom = 'fever';
     } elseif (strpos($assessment_low, 'cough') !== false || strpos($assessment_low, 'ubo') !== false) {
@@ -83,47 +83,35 @@ if (isset($_POST['submit_nurse'])) {
     } elseif (strpos($assessment_low, 'stomach') !== false || strpos($assessment_low, 'tiyan') !== false) {
         $symptom = 'Stomach cramps';
     } else {
-        $symptom = 'headache'; // safe default that exists in dataset
+        $symptom = 'headache';
     }
 
-    $temp    = $checkup['temperature'] ?? 0;
-    $hr      = $checkup['heart_rate']  ?? 0;
-    $bp      = $checkup['bp']          ?? '0/0';
-    $purpose = $ref['purpose']         ?? 'general';
+    // ✅ STEP 2: Call Render ML API
+    $ml_url  = "https://hms-ml-api.onrender.com/predict";
+    $payload = json_encode(["symptom" => $symptom]);
 
-    // STEP 2: Build command AFTER symptom is set
-    $command = "python C:/xampp/htdocs/hms2/ml/predict.py "
-        . escapeshellarg($symptom) . " "
-        . escapeshellarg($temp)    . " "
-        . escapeshellarg($hr)      . " "
-        . escapeshellarg($bp)      . " "
-        . escapeshellarg(0)        . " "
-        . escapeshellarg(0)        . " "
-        . escapeshellarg(0)        . " "
-        . escapeshellarg($purpose)
-        . " 2>&1";
+    $ch = curl_init($ml_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
-    // STEP 3: Run ML
-    $output    = shell_exec($command);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
     $label     = "Unknown";
     $score     = 0;
     $recommend = "No recommendation available.";
 
-    if (!empty($output)) {
-        $parts = explode('|', trim($output));
-        if (count($parts) >= 3) {
-            $label     = trim($parts[0]);
-            $score     = floatval(trim($parts[1]));
-            $recommend = trim($parts[2]);
-            if ($score > 0 && $score <= 1) $score *= 100;
-        } elseif (count($parts) == 2) {
-            $label = trim($parts[0]);
-            $score = floatval(trim($parts[1]));
-            if ($score > 0 && $score <= 1) $score *= 100;
-        }
+    if ($response) {
+        $res       = json_decode($response, true);
+        $label     = $res['label']     ?? "Unknown";
+        $score     = $res['score']     ?? 0;
+        $recommend = $res['recommend'] ?? "No recommendation available.";
     }
 
-    // STEP 4: Save everything to DB (make sure ai_recommendation column exists)
+    // STEP 3: Save to DB
     $conn->prepare("
         UPDATE referrals
         SET nurse_assessment    = :a,
@@ -157,10 +145,7 @@ body {
     background: #f4f7fb;
     padding: 20px;
 }
-.container {
-    max-width: 900px;
-    margin: auto;
-}
+.container { max-width: 900px; margin: auto; }
 .header {
     background: linear-gradient(135deg, #4facfe, #00f2fe);
     color: white;
@@ -186,7 +171,6 @@ body {
 .status-pending     { background: #f39c12; }
 .status-in-progress { background: #3498db; }
 .status-completed   { background: #2ecc71; }
-
 textarea {
     width: 100%;
     height: 110px;
@@ -207,7 +191,6 @@ textarea {
     margin-top: 10px;
 }
 .btn-ml:hover { background: #0056b3; }
-
 .ai-box {
     background: #e8f5e9;
     border-left: 5px solid #2ecc71;
@@ -239,7 +222,7 @@ textarea {
 </head>
 
 <body>
-    <a href="../nurse/dashboard.php">⬅ Back to Dashboard</a>
+<a href="../nurse/dashboard.php">⬅ Back to Dashboard</a>
 <div class="container">
 
     <!-- HEADER -->
@@ -290,20 +273,18 @@ textarea {
         </form>
     </div>
 
-    <!-- AI RESULT (after completed) -->
     <?php else: ?>
+    <!-- AI RESULT -->
     <div class="card ai-box">
         <h3>🤖 AI Result</h3>
         <div class="info-row">
             <div class="info-chip">🏷️ Classification: <b><?= htmlspecialchars($ref['ai_validation_label'] ?? 'N/A') ?></b></div>
             <div class="info-chip">📊 Confidence: <b><?= number_format($ref['ai_validation_score'] ?? 0, 2) ?>%</b></div>
         </div>
-
         <div class="recommend-box">
             <b>📋 Nurse Recommendation:</b><br>
             <?= htmlspecialchars($ref['ai_recommendation'] ?? 'No recommendation available.') ?>
         </div>
-
         <?php if (!empty($ref['nurse_assessment'])): ?>
         <div class="mt-3">
             <b>📝 Nurse Notes:</b><br>
