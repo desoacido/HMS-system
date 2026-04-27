@@ -10,7 +10,7 @@ if (isset($_POST['submit_nurse'])) {
     $diagnosis   = $_POST['diagnosis'];
     $notes = $_POST['notes'] ?? '';
 
-    // 1. GET PATIENT + PURPOSE (FIXED)
+    // 1. GET PATIENT + PURPOSE
     $p_stmt = $conn->prepare("
         SELECT r.purpose 
         FROM patients p 
@@ -22,8 +22,6 @@ if (isset($_POST['submit_nurse'])) {
 
     $age = 0;
     $purpose_text = $data['purpose'] ?? 'General';
-
-    
 
     // 2. GET LATEST VITALS
     $v_stmt = $conn->prepare("
@@ -40,30 +38,29 @@ if (isset($_POST['submit_nurse'])) {
     $v_bp   = $v['bp'] ?? "120/80";
 
     // ---------------------------------------------------------
-    // 🤖 ML TRIGGER
+    // 🤖 ML TRIGGER - Render API
     // ---------------------------------------------------------
-    $python = "python";
-    $script = "C:/xampp/htdocs/hms2/ml/predict.py";
+    $ml_url = "https://hms-ml-api.onrender.com/predict";
 
-    $command = "$python \"$script\" " . 
-        escapeshellarg($assessment) . " " . 
-        escapeshellarg($v_temp) . " " . 
-        escapeshellarg($v_hr) . " " . 
-        escapeshellarg($v_bp) . " " . 
-        escapeshellarg($age) . " 0 0 " . 
-        escapeshellarg($purpose_text) . " 2>&1";
+    $payload = json_encode(["symptom" => $assessment]);
 
-    $output = shell_exec($command);
+    $ch = curl_init($ml_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
 
     $ai_label = "Unknown";
     $ai_score = 0;
 
-    if ($output) {
-        $res = explode('|', trim($output));
-        if (count($res) == 2) {
-            $ai_label = $res[0];
-            $ai_score = (float)$res[1];
-        }
+    if ($response) {
+        $res = json_decode($response, true);
+        $ai_label = $res['label'] ?? "Unknown";
+        $ai_score = $res['score'] ?? 0;
     }
 
     // 3. UPDATE REFERRAL
