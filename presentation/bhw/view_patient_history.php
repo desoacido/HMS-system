@@ -1,8 +1,8 @@
 <?php
-include '../../application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
 
 $patient_id = $_GET['patient_id'] ?? null;
-
 if (!$patient_id) {
     die("Patient ID missing");
 }
