@@ -1,5 +1,5 @@
 <?php
-include '../../application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
 
 $id = $_GET['id'] ?? null;
 
@@ -81,7 +81,7 @@ echo $patient['birthdate'] ?? 'N/A';
 
     <div class="info"><span class="label">Address:</span> <?= $patient['address'] ?></div>
 
-    <a class="back" href="/hms2/presentation/bhw/patient_list.php">
+    <a class="back" href="/presentation/bhw/patient_list.php">
         ⬅ Back
     </a>
 
