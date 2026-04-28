@@ -72,7 +72,7 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
 
             $ref = $conn->prepare("
                 INSERT INTO referrals 
-                (patient_id, reason, status, created_at)
+                (patient_id, purpose, status, created_at)
                 VALUES (?, ?, 'Pending', NOW())
             ");
 
