@@ -18,18 +18,7 @@ $stmt->execute([':qr' => $qr_url, ':id' => $patient_id]);
 
 
 
-// FOLDER
-$path = "../../qrcodes/";
-if (!file_exists($path)) {
-    mkdir($path, 0777, true);
-}
 
-// FILE
-$file = $path . "patient_" . $patient_id . ".png";
-
-// GENERATE QR
-QRcode::png($data, $file, 'L', 6, 2);
-?>
 
 <!DOCTYPE html>
 <html>
