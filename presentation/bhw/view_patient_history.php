@@ -92,7 +92,7 @@ h2{
 
 <body>
 
-<a href="/hms2/presentation/bhw/dashboard.php" class="back">⬅ Back to Dashboard</a>
+<a href="/presentation/bhw/dashboard.php" class="back">⬅ Back to Dashboard</a>
 
 <div class="container">
 
