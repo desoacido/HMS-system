@@ -1,5 +1,5 @@
 <?php
-include '../../application/includes/session_check.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
 ?>
 
 <!DOCTYPE html>
@@ -136,7 +136,7 @@ body {
             <p>View and manage patient records.</p>
         </a>
 
-        <a href="/hms2/presentation/bhw/scan_qr.php" class="card">
+        <a href="/presentation/bhw/scan_qr.php" class="card">
             <h3>Scan QR</h3>
             <p>Scan patient QR code for quick access.</p>
         </a>
