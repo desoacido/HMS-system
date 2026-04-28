@@ -1,27 +1,22 @@
 <?php
-session_start(); // ✅ Add this
-include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php'; // ✅ Add this
-include '../../application/config/db.php';
-include '../../phpqrcode/qrlib.php';
-
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/phpqrcode/qrlib.php';
 
 $patient_id = $_GET['id'];
 
-// GET PATIENT
 $stmt = $conn->prepare("SELECT * FROM patients WHERE id = :id");
 $stmt->execute([':id' => $patient_id]);
 $patient = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// QR DATA
-$data = "https://your-domain.com/presentation/patient/view.php?id=" . $patient_id;
-
+$data = "https://hms-system-cv2z.onrender.com/presentation/qrcode/generate_patient_qr.php?id=" . $patient_id;
 $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode($data);
 
 $stmt = $conn->prepare("UPDATE patients SET qr_code = :qr WHERE id = :id");
-$stmt->execute([
-    ':qr' => $qr_url,
-    ':id' => $patient_id
-]);
+$stmt->execute([':qr' => $qr_url, ':id' => $patient_id]);
+?>
+
+
 
 // FOLDER
 $path = "../../qrcodes/";
