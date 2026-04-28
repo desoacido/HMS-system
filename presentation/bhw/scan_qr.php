@@ -74,7 +74,28 @@ h2 {
 
 <script>
 function onScanSuccess(decodedText, decodedResult) {
-    document.getElementById("statusText").innerHTML = "✅ QR detected! Redirecting...";
+
+    const allowedBase = "https://hms-system-cv2z.onrender.com";
+
+    if (!decodedText.startsWith(allowedBase)) {
+        document.getElementById("statusText").innerHTML = 
+            "❌ Invalid QR Code! Not from this system.";
+        document.getElementById("statusText").style.color = "red";
+        return;
+    }
+
+    const url = new URL(decodedText);
+    const patientId = url.searchParams.get("id");
+
+    if (!patientId || isNaN(patientId)) {
+        document.getElementById("statusText").innerHTML = 
+            "❌ Invalid QR Code! No patient found.";
+        document.getElementById("statusText").style.color = "red";
+        return;
+    }
+
+    document.getElementById("statusText").innerHTML = 
+        "✅ QR detected! Redirecting...";
     document.getElementById("statusText").classList.add("success");
 
     setTimeout(() => {
@@ -86,9 +107,7 @@ var html5QrcodeScanner = new Html5QrcodeScanner(
     "reader",
     { fps: 10, qrbox: 250 }
 );
-
 html5QrcodeScanner.render(onScanSuccess);
 </script>
-
 </body>
 </html>
