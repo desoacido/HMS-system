@@ -45,14 +45,14 @@ if (isset($_POST['add_patient'])) {
     $data = $base_url . "/presentation/patient/view.php?id=" . $patient_id;
 
     // GENERATE QR
-    QRcode::png($data, $file, QR_ECLEVEL_L, 6);
-
-    // UPDATE QR PATH IN DB
+   $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode($data);
     $stmt = $conn->prepare("UPDATE patients SET qr_code = :qr WHERE id = :id");
-    $stmt->execute([
-        ':qr' => "qrcodes/patient_" . $patient_id . ".png",
-        ':id' => $patient_id
-    ]);
+$stmt->execute([
+    ':qr' => $qr_url,
+    ':id' => $patient_id
+]);
+
+    
 
     $message = "Patient added successfully + QR generated 👍";
 }
