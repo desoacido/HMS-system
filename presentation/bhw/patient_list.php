@@ -167,8 +167,7 @@ img {
         <a class="history" href="view_patient_history.php?patient_id=<?= $p['id'] ?>">History</a>
         <a class="record" href="select_category.php?patient_id=<?= $p['id'] ?>">New</a>
     </td>
-</tr>
-<?php endforeach; ?>
+
 
     </tr>
             <?php endforeach; ?>
