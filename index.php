@@ -30,7 +30,7 @@
     <p>Health Management System</p>
 
  
-<a class="btn" href="/presentation/login.php">
+<a class="btn" href="login.php">
         Get Started
     </a>
 
