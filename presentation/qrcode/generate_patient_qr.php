@@ -1,4 +1,3 @@
-
 <?php
 session_start(); // ✅ Add this
 include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php'; // ✅ Add this
