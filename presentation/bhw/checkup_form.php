@@ -1,6 +1,6 @@
 <?php
-include '../../application/includes/session_check.php';
-include '../../application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
 
 $patient_id = $_GET['patient_id'] ?? null;
 
@@ -22,7 +22,7 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
 
         $stmt->execute([
             ':patient_id' => $patient_id,
-            ':category' => 'Check-up', // fixed standard category
+            ':category' => 'Check-up',
             ':notes' => $_POST['notes'] ?? '',
             ':bp' => $_POST['bp'] ?? '',
             ':temp' => $_POST['temperature'] ?? null,
@@ -43,7 +43,7 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
             $ref->execute([
                 ':patient_id' => $patient_id,
                 ':consultation_id' => null,
-                ':purpose' => 'Check-up Assessment', // FIXED (no reason column)
+                ':purpose' => 'Check-up Assessment',
                 ':status' => 'pending',
                 ':created_by' => $_SESSION['user_id']
             ]);
