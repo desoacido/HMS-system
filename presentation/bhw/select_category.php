@@ -1,5 +1,5 @@
 <?php
-include '../../application/includes/session_check.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
 
 $patient_id = $_GET['patient_id'] ?? null;
 
