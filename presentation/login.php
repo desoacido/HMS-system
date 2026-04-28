@@ -1,3 +1,5 @@
+<?php session_start(); ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,7 +137,7 @@
 
 <body>
 
-<?php session_start(); ?>
+
 
 <div class="container">
 
@@ -156,7 +158,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="/hms2/application/controllers/login_process.php" method="POST">
+        <form action="/application/controllers/login_process.php" method="POST">
 
             <div class="input-group">
                 <label>Username</label>
