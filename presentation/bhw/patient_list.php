@@ -1,6 +1,7 @@
 <?php
-include '../../application/includes/session_check.php';
-include '../../application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
 
 $stmt = $conn->query("SELECT * FROM patients ORDER BY id DESC");
 $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
