@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /hms2/presentation/login.php");
+    header("Location: /presentation/login.php");
     exit();
 }
 ?>
