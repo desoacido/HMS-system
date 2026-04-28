@@ -169,3 +169,23 @@ img {
     </td>
 </tr>
 <?php endforeach; ?>
+
+    </tr>
+            <?php endforeach; ?>
+        </table>
+    </div>
+</div>
+
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#patientTable tr:not(:first-child)');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+</script>
+
+</body>
+</html>
