@@ -87,7 +87,7 @@ function onScanSuccess(decodedText, decodedResult) {
     setTimeout(() => {
         const url = new URL(decodedText);
         const patientId = url.searchParams.get("id");
-        window.location.href = "/presentation/bhw/view_patient_history.php?patient_id=" + patientId;
+        window.location.href = "/presentation/bhw/view_patient.php?patient_id=" + patientId;
     }, 1000);
 }
 var html5QrcodeScanner = new Html5QrcodeScanner(
