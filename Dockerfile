@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y libcurl4-openssl-dev \
 
 COPY . /var/www/html/
 
-RUN mkdir -p /var/www/html/qrcodes && chmod -R 755 /var/www/html/qrcodes
+RUN mkdir -p /var/www/html/qrcodes \
+    && chown -R www-data:www-data /var/www/html/qrcodes \
+    && chmod -R 775 /var/www/html/qrcodes
 
 # ✅ Point to root, not presentation/
 RUN echo '<VirtualHost *:80>\n\
