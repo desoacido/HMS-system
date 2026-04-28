@@ -8,12 +8,13 @@ COPY . /var/www/html/
 
 RUN mkdir -p /var/www/html/qrcodes && chmod -R 755 /var/www/html/qrcodes
 
-# Set presentation as the web root entry point
+# ✅ Point to root, not presentation/
 RUN echo '<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html/presentation\n\
+    DocumentRoot /var/www/html\n\
     <Directory /var/www/html>\n\
         AllowOverride All\n\
         Require all granted\n\
+        Options Indexes FollowSymLinks\n\
     </Directory>\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
