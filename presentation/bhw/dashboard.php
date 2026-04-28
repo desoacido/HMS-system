@@ -113,7 +113,7 @@ body {
 
     <a href="add_patient.php">➕ Add Patient</a>
     <a href="patient_list.php">📋 Patient List</a>
-    <a href="/hms2/presentation/bhw/scan_qr.php">📷 Scan QR</a>
+    <a href="/presentation/bhw/scan_qr.php">📷 Scan QR</a>
 
     <a href="../logout.php" class="logout">🚪 Logout</a>
 </div>
