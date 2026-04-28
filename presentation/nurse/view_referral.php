@@ -223,7 +223,20 @@ textarea {
 </head>
 
 <body>
-<a href="../nurse/dashboard.php">⬅ Back to Dashboard</a>
+<a href="../nurse/dashboard.php" style="
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    background-color: #fff;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+">← Back to Dashboard</a>
 <div class="container">
 
     <!-- HEADER -->
