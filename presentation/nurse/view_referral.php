@@ -1,6 +1,7 @@
 <?php
-include '../../application/config/db.php';
-include '../../application/includes/session_check.php';
+
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php';
 
 $id = $_GET['id'] ?? null;
 if (!$id) die("Invalid referral ID");
