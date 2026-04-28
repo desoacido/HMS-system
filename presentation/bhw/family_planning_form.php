@@ -1,5 +1,5 @@
 <?php
-include '../../application/config/db.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/application/config/db.php';
 session_start();
 
 $patient_id = $_GET['patient_id'] ?? null;
@@ -252,7 +252,8 @@ textarea {
 
 <body>
 
-<a href="/hms2/presentation/bhw/dashboard.php" class="back">⬅ Back</a>
+<!-- ✅ FIXED: removed hardcoded /hms2/ -->
+<a href="/presentation/bhw/dashboard.php" class="back">⬅ Back</a>
 
 <div class="container">
 
