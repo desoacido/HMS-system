@@ -102,7 +102,7 @@ QRcode::png($data, $file, 'L', 6, 2);
         <?= $patient['first_name'] . " " . $patient['last_name'] ?>
     </div>
 
-    <img src="../../qrcodes/patient_<?= $patient_id ?>.png">
+    <img src="<?= $qr_url ?>">
 
     <br>
 
