@@ -29,7 +29,8 @@
     <h1>🏥 Barangay Health Center HMS</h1>
     <p>Health Management System</p>
 
-    <a class="btn" href="/hms2/presentation/login.php">
+ 
+<a class="btn" href="/presentation/login.php">
         Get Started
     </a>
 
