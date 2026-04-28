@@ -108,7 +108,7 @@ img {
 <body>
 
 <!-- ✅ BACK BUTTON MOVED HERE -->
-<a href="/hms2/presentation/bhw/dashboard.php" class="back">
+<a href="/presentation/bhw/dashboard.php" class="back">
     ⬅ Back to Dashboard
 </a>
 
@@ -154,14 +154,14 @@ img {
 
     <td>
         <?php if (!empty($p['qr_code'])): ?>
-            <img src="/hms2/<?= $p['qr_code'] ?>" width="70">
+            <img src="<?= $p['qr_code'] ?>" width="70">
         <?php else: ?>
             <span style="color:#999;">No QR</span>
         <?php endif; ?>
     </td>
 
     <td class="actions">
-        <a class="qr" href="/hms2/presentation/qrcode/generate_patient_qr.php?id=<?= $p['id'] ?>">QR</a>
+        <a class="qr" href="/presentation/qrcode/generate_patient_qr.php?id=<?= $p['id'] ?>">QR</a>
         <a class="visit" href="select_category.php?patient_id=<?= $p['id'] ?>">Visit</a>
         <a class="history" href="view_patient_history.php?patient_id=<?= $p['id'] ?>">History</a>
         <a class="record" href="select_category.php?patient_id=<?= $p['id'] ?>">New</a>
