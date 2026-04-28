@@ -106,7 +106,7 @@ QRcode::png($data, $file, 'L', 6, 2);
 
     <br>
 
-    <a class="btn" href="/hms2/presentation/bhw/patient_list.php">
+    <a class="btn" href="/presentation/bhw/patient_list.php">
         ⬅ Back to Patient List
     </a>
 
