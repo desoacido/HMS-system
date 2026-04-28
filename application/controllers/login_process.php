@@ -3,7 +3,7 @@ session_start();
 include __DIR__ . '/../config/db.php';
 
 if (!isset($_POST['username']) || !isset($_POST['password'])) {
-    header("Location: /hms2/presentation/login.php");
+    header("Location: /presentation/login.php");
     exit();
 }
 
