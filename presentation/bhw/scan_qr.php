@@ -69,35 +69,25 @@ h2 {
 
     <div class="status" id="statusText">Align QR code inside the box</div>
 
-    <a href="/hms2/presentation/bhw/dashboard.php" class="back">⬅ Back to Dashboard</a>
+    <a href="/presentation/bhw/dashboard.php" class="back">⬅ Back to Dashboard</a>
 </div>
 
 <script>
 function onScanSuccess(decodedText, decodedResult) {
 
+    // ERROR HANDLER LANG - para sa hindi system QR
     const allowedBase = "https://hms-system-cv2z.onrender.com";
 
     if (!decodedText.startsWith(allowedBase)) {
         document.getElementById("statusText").innerHTML = 
-            "❌ Invalid QR Code! Not from this system.";
+            "❌ Invalid QR Code! Not registered in this system.";
         document.getElementById("statusText").style.color = "red";
         return;
     }
 
-    const url = new URL(decodedText);
-    const patientId = url.searchParams.get("id");
-
-    if (!patientId || isNaN(patientId)) {
-        document.getElementById("statusText").innerHTML = 
-            "❌ Invalid QR Code! No patient found.";
-        document.getElementById("statusText").style.color = "red";
-        return;
-    }
-
-    document.getElementById("statusText").innerHTML = 
-        "✅ QR detected! Redirecting...";
+    // ORIGINAL MO - hindi binago
+    document.getElementById("statusText").innerHTML = "✅ QR detected! Redirecting...";
     document.getElementById("statusText").classList.add("success");
-
     setTimeout(() => {
         window.location.href = decodedText;
     }, 1000);
