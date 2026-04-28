@@ -10,7 +10,15 @@ $stmt->execute([':id' => $patient_id]);
 $patient = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // QR DATA
-$data = "http://localhost/hms2/presentation/patient/view.php?id=" . $patient_id;
+$data = "https://your-domain.com/presentation/patient/view.php?id=" . $patient_id;
+
+$qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode($data);
+
+$stmt = $conn->prepare("UPDATE patients SET qr_code = :qr WHERE id = :id");
+$stmt->execute([
+    ':qr' => $qr_url,
+    ':id' => $patient_id
+]);
 
 // FOLDER
 $path = "../../qrcodes/";
