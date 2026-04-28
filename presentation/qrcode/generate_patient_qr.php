@@ -1,6 +1,10 @@
+
 <?php
+session_start(); // ✅ Add this
+include $_SERVER['DOCUMENT_ROOT'] . '/application/includes/session_check.php'; // ✅ Add this
 include '../../application/config/db.php';
 include '../../phpqrcode/qrlib.php';
+...
 
 $patient_id = $_GET['id'];
 
