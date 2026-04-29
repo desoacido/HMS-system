@@ -73,29 +73,39 @@ h2 {
 </div>
 <script>
 function onScanSuccess(decodedText, decodedResult) {
-    // ERROR HANDLER LANG - para sa hindi system QR
     const allowedBase = "https://hms-system-cv2z.onrender.com";
+
     if (!decodedText.startsWith(allowedBase)) {
         document.getElementById("statusText").innerHTML = 
             "❌ Invalid QR Code! Not registered in this system.";
         document.getElementById("statusText").style.color = "red";
         return;
     }
-    // ORIGINAL MO - hindi binago
+
     document.getElementById("statusText").innerHTML = "✅ QR detected! Redirecting...";
     document.getElementById("statusText").classList.add("success");
+
     setTimeout(() => {
-        const url = new URL(decodedText);
-        const patientId = url.searchParams.get("id");
-        window.location.href = "/presentation/bhw/view_patient.php?patient_id=" + patientId;
+        try {
+            const url = new URL(decodedText);
+            const patientId = url.searchParams.get("id");
+            if (patientId) {
+                window.location.href = "/presentation/bhw/view_patient.php?patient_id=" + patientId;
+            } else {
+                window.location.href = decodedText;
+            }
+        } catch(e) {
+            window.location.href = decodedText;
+        }
     }, 1000);
 }
+
 var html5QrcodeScanner = new Html5QrcodeScanner(
     "reader",
-    { fps: 10, qrbox: 250 }
+    { fps: 10, qrbox: { width: 250, height: 250 } }
 );
+
 html5QrcodeScanner.render(onScanSuccess);
 </script>
-
 </body>
 </html>
