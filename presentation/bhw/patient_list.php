@@ -202,8 +202,7 @@ h2 { color:#333; }
         <div class="patient-name" onclick="toggleDetails(this)">
             <div>
                 <h3><?= $fullName ?></h3>
-                <div class="meta">ID #<?= $p['id'] ?> &nbsp;|&nbsp; Age: <?= $age ?></div>
-                <div class="meta">📅 <?= $p['birthdate'] ?? 'N/A' ?> &nbsp;|&nbsp; 📍 <?= $p['address'] ?? 'N/A' ?></div>
+               
             </div>
             <span class="arrow">▼</span>
         </div>
