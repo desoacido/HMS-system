@@ -1,17 +1,17 @@
 from flask import Flask, request, jsonify
 import joblib
 import os
+import numpy as np
+from scipy.sparse import hstack, csr_matrix
 
 app = Flask(__name__)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Load models
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+model      = joblib.load(os.path.join(BASE_DIR, "ml", "medical_model.pkl"))
+rec_model  = joblib.load(os.path.join(BASE_DIR, "ml", "recommendation_model.pkl"))
+vectorizer = joblib.load(os.path.join(BASE_DIR, "ml", "vectorizer.pkl"))
 
-# ✅ FIXED: remove "ml" folder path
-model = joblib.load(os.path.join(BASE_DIR, "medical_model.pkl"))
-rec_model = joblib.load(os.path.join(BASE_DIR, "recommendation_model.pkl"))
-vectorizer = joblib.load(os.path.join(BASE_DIR, "vectorizer.pkl"))
-
-# ---- BP PARSER ----
 def parse_bp(bp):
     try:
         parts = str(bp).split('/')
@@ -19,72 +19,58 @@ def parse_bp(bp):
     except:
         return 120.0, 80.0
 
-@app.route('/')
+@app.route("/")
 def home():
-    return "ML API is running"
+    return "HMS ML API is running ✅"
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    try:
-        data = request.get_json()
+    data = request.json
 
-        # ---- GET INPUTS (same as predict.py) ----
-        symptom_input    = data.get('symptoms', "")
-        temp_input       = float(data.get('temperature', 36.5))
-        hr_input         = float(data.get('heart_rate', 80))
-        bp_input         = data.get('blood_pressure', "120/80")
-        age_input        = float(data.get('age', 25))
-        smoking_input    = float(data.get('smoking', 0))
-        bf_input         = float(data.get('breastfeeding', 0))
-        assessment_input = data.get('assessment', "")
+    symptom    = data.get("symptom", "")
+    assessment = data.get("nurse_assessment", "")
+    temp       = float(data.get("temp", 36.5))
+    hr         = float(data.get("hr", 80))
+    bp         = data.get("bp", "120/80")
+    age        = float(data.get("age", 25))
+    smoking    = float(data.get("smoking", 0))
+    bf         = float(data.get("breastfeeding", 0))
 
-        systolic, diastolic = parse_bp(bp_input)
+    systolic, diastolic = parse_bp(bp)
 
-        # ---- BUILD FEATURES ----
-        text_combined = symptom_input + " " + assessment_input
-        X_text = vectorizer.transform([text_combined])
+    # Build features (same as train_model.py)
+    text_combined = symptom + " " + assessment
+    X_text = vectorizer.transform([text_combined])
+    X_num  = np.array([[temp, hr, age, smoking, bf, systolic, diastolic]])
+    X_num_sparse = csr_matrix(X_num)
+    X_combined = hstack([X_text, X_num_sparse])
 
-        X_num = np.array([[temp_input, hr_input, age_input, smoking_input, bf_input, systolic, diastolic]])
-        X_num_sparse = csr_matrix(X_num)
+    category   = model.predict(X_combined)[0]
+    probs      = model.predict_proba(X_combined)[0]
+    confidence = round(max(probs) * 100, 2)
+    recommend  = rec_model.predict(X_combined)[0]
 
-        X_combined = hstack([X_text, X_num_sparse])
+    # Smart override
+    s = symptom.lower()
+    if any(k in s for k in ['vaccine','bakuna','bcg','penta','measles','polio','turok','immuniz']):
+        category   = "Immunization"
+        confidence = 99.0
+        recommend  = "Administer appropriate vaccine; Record in immunization card; Schedule next dose"
+    elif any(k in s for k in ['pills','injectable','implant','iud','family planning','condom','dmpa']):
+        category   = "Family Planning"
+        confidence = 99.0
+        recommend  = "Counsel patient on chosen family planning method; Provide supply and follow-up schedule"
+    elif any(k in s for k in ['prenatal','pregnant','nagbubuntis']):
+        category   = "Check-up"
+        confidence = 99.0
+        recommend  = "Monitor weight and blood pressure and fetal heartbeat; Request urinalysis and CBC"
 
-        # ---- PREDICTION ----
-        category   = cat_model.predict(X_combined)[0]
-        probs      = cat_model.predict_proba(X_combined)[0]
-        confidence = float(max(probs) * 100)
-        recommend  = rec_model.predict(X_combined)[0]
+    return jsonify({
+        "label":     category,
+        "score":     confidence,
+        "recommend": recommend
+    })
 
-        # ---- SMART OVERRIDE ----
-        s_low = symptom_input.lower()
-
-        if any(k in s_low for k in ['vaccine','immuniz','bcg','penta','measles','polio','bakuna','turok']):
-            category   = "Immunization"
-            confidence = 99.0
-            recommend  = "Administer appropriate vaccine. Record in immunization card. Schedule next dose."
-
-        elif any(k in s_low for k in ['pills','injectable','implant','iud','family planning','condom']):
-            category   = "Family Planning"
-            confidence = 99.0
-            recommend  = "Counsel patient on chosen family planning method. Provide supply and follow-up schedule."
-
-        elif any(k in s_low for k in ['prenatal','pregnant']):
-            category   = "Check-up"
-            confidence = 99.0
-            recommend  = "Schedule prenatal visit. Monitor weight, BP, and fetal heartbeat."
-
-        return jsonify({
-            "category": category,
-            "confidence": round(confidence, 2),
-            "recommendation": recommend
-        })
-
-    except Exception as e:
-        return jsonify({
-            "category": "Unknown",
-            "confidence": 0.00,
-            "recommendation": "Prediction error"
-        })
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
