@@ -173,6 +173,7 @@ $total = count($patients);
 
 <div class="header">
     <h2>Patients List</h2>
+   <a href="../admin/dashboard.php" class="back">⬅ Back to Dashboard</a>
 </div>
 
 <p class="total-count">Total Patients: <span id="displayCount"><?= $total ?></span></p>
@@ -227,7 +228,7 @@ $total = count($patients);
 <!-- Pagination -->
 <div class="pagination" id="pagination"></div>
 
-<a href="../admin/dashboard.php" class="back">⬅ Back to Dashboard</a>
+
 
 <script>
     const rowsPerPage = 10;
