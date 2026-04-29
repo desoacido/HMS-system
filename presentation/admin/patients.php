@@ -193,7 +193,7 @@ $total = count($patients);
             <th>Age</th>
             <th>Address</th>
             <th>Contact</th>
-            <th>Action</th>
+            
         </tr>
     </thead>
     <tbody id="tableBody">
