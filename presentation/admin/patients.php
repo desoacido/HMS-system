@@ -215,8 +215,8 @@ $total = count($patients);
             <td><?= $p['address'] ?></td>
             <td><?= $p['contact_number'] ?></td>
             <td>
-                <a href="view_patient.php?id=<?= $p['id'] ?>" class="btn-view">View</a>
-                <a href="edit_patient.php?id=<?= $p['id'] ?>" class="btn-edit">Edit</a>
+                <a href="/presentation/bhw/view_patient.php?id=<?= $p['id'] ?>" class="btn-view">View</a>
+                <a href="/presentation/bhw/view_patient.php?id=<?= $p['id'] ?>" class="btn-edit">Edit</a>
             </td>
         </tr>
         <?php endforeach; ?>
