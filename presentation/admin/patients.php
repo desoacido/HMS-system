@@ -180,7 +180,7 @@ $total = count($patients);
 
 <div class="controls">
     <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Search by name, address, contact...">
-    <a href="add_patient.php" class="btn-add">+ Add Patient</a>
+    
 </div>
 
 <table id="patientsTable">
@@ -215,8 +215,7 @@ $total = count($patients);
             <td><?= $p['address'] ?></td>
             <td><?= $p['contact_number'] ?></td>
             <td>
-                <a href="/presentation/bhw/view_patient.php?id=<?= $p['id'] ?>" class="btn-view">View</a>
-                <a href="/presentation/bhw/view_patient.php?id=<?= $p['id'] ?>" class="btn-edit">Edit</a>
+               
             </td>
         </tr>
         <?php endforeach; ?>
