@@ -257,7 +257,7 @@ body {
 
     <!-- TOP BAR -->
     <div class="top-bar">
-        <a href="dashboard.php" class="btn-back">← Back</a>
+        
         <h2>
             <?php
                 if ($filter == 'Pending')     echo '📋';
