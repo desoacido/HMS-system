@@ -111,7 +111,8 @@ session_start();
     <h2>HMS Admin</h2>
 
     <a href="users.php">👤 Manage Users</a>
-    <a href="patients.php">🧾 Patient List</a>
+    <a href="patients.php">🧾 Patient Records</a>
+   <a href="reports.php">🧾 Reports</a>
 
     <a href="../logout.php" class="logout">🚪 Logout</a>
 </div>
