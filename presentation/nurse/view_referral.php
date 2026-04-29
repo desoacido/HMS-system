@@ -272,9 +272,7 @@ textarea {
             <div class="info-chip">🌡️ Temp: <?= htmlspecialchars($checkup['temperature'] ?? 'N/A') ?>°C</div>
             <div class="info-chip">💓 HR: <?= htmlspecialchars($checkup['heart_rate'] ?? 'N/A') ?> bpm</div>
         </div>
-        <div class="mt-3">
-            <b>Notes:</b> <?= htmlspecialchars($checkup['notes'] ?? 'N/A') ?>
-        </div>
+       
     </div>
 
     <!-- NURSE ASSESSMENT FORM -->
@@ -290,13 +288,13 @@ textarea {
     <?php else: ?>
     <!-- AI RESULT -->
     <div class="card ai-box">
-        <h3>🤖 AI Result</h3>
+        <h3>🤖 ML Recommendation</h3>
         <div class="info-row">
             <div class="info-chip">🏷️ Classification: <b><?= htmlspecialchars($ref['ai_validation_label'] ?? 'N/A') ?></b></div>
             <div class="info-chip">📊 Confidence: <b><?= number_format($ref['ai_validation_score'] ?? 0, 2) ?>%</b></div>
         </div>
         <div class="recommend-box">
-            <b>📋 Nurse Recommendation:</b><br>
+            <b>📋 Recommendation:</b><br>
             <?= htmlspecialchars($ref['ai_recommendation'] ?? 'No recommendation available.') ?>
         </div>
         <?php if (!empty($ref['nurse_assessment'])): ?>
