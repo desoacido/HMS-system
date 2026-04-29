@@ -68,15 +68,27 @@ $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <th>ID</th>
         <th>First Name</th>
         <th>Last Name</th>
+        <th>Birthdate</th>
         <th>Age</th>
+        <th>Address</th>
         <th>Contact</th>
     </tr>
     <?php foreach ($patients as $p): ?>
+    <?php
+        $age = 'N/A';
+        if (!empty($p['birthdate'])) {
+            $birth = new DateTime($p['birthdate']);
+            $today = new DateTime();
+            $age = $birth->diff($today)->y;
+        }
+    ?>
     <tr>
         <td><?= $p['id'] ?></td>
         <td><?= $p['first_name'] ?></td>
         <td><?= $p['last_name'] ?></td>
-        <td><?= $p['age'] ?? 'N/A' ?></td>
+        <td><?= $p['birthdate'] ?></td>
+        <td><?= $age ?></td>
+        <td><?= $p['address'] ?></td>
         <td><?= $p['contact_number'] ?></td>
     </tr>
     <?php endforeach; ?>
