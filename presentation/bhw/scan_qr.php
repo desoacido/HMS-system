@@ -90,7 +90,7 @@ function onScanSuccess(decodedText, decodedResult) {
             const url = new URL(decodedText);
             const patientId = url.searchParams.get("id");
             if (patientId) {
-                window.location.href = "/presentation/bhw/view_patient.php?patient_id=" + patientId;
+                window.location.href = "/presentation/bhw/view_patient.php?id=" + patientId;
             } else {
                 window.location.href = decodedText;
             }
