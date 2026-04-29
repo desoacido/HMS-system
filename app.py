@@ -8,10 +8,10 @@ app = Flask(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ---- LOAD MODELS ----
-cat_model  = joblib.load(os.path.join(BASE_DIR, "medical_model.pkl"))
-rec_model  = joblib.load(os.path.join(BASE_DIR, "recommendation_model.pkl"))
-vectorizer = joblib.load(os.path.join(BASE_DIR, "vectorizer.pkl"))
+# ---- LOAD MODELS ---- 
+cat_model  = joblib.load(os.path.join(BASE_DIR, "ml", "medical_model.pkl"))
+rec_model  = joblib.load(os.path.join(BASE_DIR, "ml", recommendation_model.pkl"))
+vectorizer = joblib.load(os.path.join(BASE_DIR, "ml", vectorizer.pkl"))
 
 # ---- BP PARSER ----
 def parse_bp(bp):
