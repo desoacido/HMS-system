@@ -16,14 +16,14 @@ if (isset($_POST['save_only']) || isset($_POST['save_and_referral'])) {
 
         // 1. INSERT PATIENT VISIT
         $stmt = $conn->prepare("INSERT INTO patient_visits 
-            (patient_id, category, notes, bp, temperature, heart_rate, weight, height, created_by)
+            (patient_id, category, bp, temperature, heart_rate, weight, height, created_by)
             VALUES 
-            (:patient_id, :category, :notes, :bp, :temp, :hr, :weight, :height, :created_by)");
+            (:patient_id, :category, :bp, :temp, :hr, :weight, :height, :created_by)");
 
         $stmt->execute([
             ':patient_id' => $patient_id,
             ':category' => 'Check-up',
-            ':notes' => $_POST['notes'] ?? '',
+            
             ':bp' => $_POST['bp'] ?? '',
             ':temp' => $_POST['temperature'] ?? null,
             ':hr' => $_POST['heart_rate'] ?? null,
@@ -179,7 +179,7 @@ button{
     <input type="number" name="heart_rate" placeholder="Heart Rate (bpm)">
     <input type="number" step="0.1" name="weight" placeholder="Weight (kg)">
     <input type="number" step="0.1" name="height" placeholder="Height (cm)">
-    <textarea name="notes" placeholder="Symptoms / Notes"></textarea>
+    
 
     <div class="buttons">
         <button class="save" type="submit" name="save_only">💾 Save Only</button>
