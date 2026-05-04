@@ -126,7 +126,7 @@ session_start();
     <div class="hero-text">
         <h1>Hospital Management System</h1>
         <p>
-            Manage patients, appointments, and healthcare records efficiently.
+            Manage patients and healthcare records efficiently.
             Designed for Admin, BHW, and Nurses.
         </p>
         <a href="login.php">Get Started</a>
