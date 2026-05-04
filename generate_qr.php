@@ -2,12 +2,14 @@
 session_start();
 include __DIR__ . '/db.php';
 
+// 1. Kunin ang ID mula sa URL
 $id = $_GET['id'] ?? null;
+
 if (!$id) {
-    die("No patient selected.");
+    die("Error: No patient selected.");
 }
 
-// GET PATIENT INFO
+// 2. Kunin ang impormasyon ng pasyente gamit ang MySQLi Prepared Statement
 $stmt = $conn->prepare("SELECT * FROM patients WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -15,109 +17,80 @@ $result = $stmt->get_result();
 $patient = $result->fetch_assoc();
 
 if (!$patient) {
-    die("Patient not found.");
+    die("Error: Patient not found in the database.");
 }
 
-// ✅ QR GENERATION — must be inside <?php ?> tags!
-$qr_data   = $patient['id'];
-$qr_url    = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . $qr_data;
-$qr_folder = __DIR__ . '/qrcodes/';
-$qr_file   = $qr_folder . 'patient_' . $id . '.png';
-$qr_path   = 'qrcodes/patient_' . $id . '.png';
+// 3. QR Generation Logic gamit ang QRServer API
+$qr_data   = $patient['id']; // Ang ID ng pasyente ang nilalaman ng QR
+$qr_size   = "200x200";
+$qr_url    = "https://api.qrserver.com/v1/create-qr-code/?size=$qr_size&data=" . $qr_data;
 
+$qr_folder = __DIR__ . '/qrcodes/';
+$qr_filename = 'patient_' . $id . '.png';
+$qr_file_path = $qr_folder . $qr_filename; // Physical path para sa file_put_contents
+$db_save_path = 'qrcodes/' . $qr_filename; // Relative path para sa database
+
+// 4. Siguraduhin na exist ang folder
 if (!file_exists($qr_folder)) {
     mkdir($qr_folder, 0777, true);
 }
 
-file_put_contents($qr_file, file_get_contents($qr_url));
+// 5. I-download ang QR image mula sa API at i-save sa folder
+$image_content = file_get_contents($qr_url);
+if ($image_content === false) {
+    die("Error: Could not generate QR image from API.");
+}
+file_put_contents($qr_file_path, $image_content);
 
-// ✅ FIXED: MySQLi uses bind_param, not execute([...])
-$stmt2 = $conn->prepare("UPDATE patients SET qr_code = ? WHERE id = ?");
-$stmt2->bind_param("si", $qr_path, $id);
-$stmt2->execute();
-?>
-<!DOCTYPE html>
-<html>
-<!-- ... rest of your HTML stays the same ... -->
+// 6. I-update ang database gamit ang MySQLi Prepared Statement
+$update_stmt = $conn->prepare("UPDATE patients SET qr_code = ? WHERE id = ?");
+$update_stmt->bind_param("si", $db_save_path, $id);
 
+if (!$update_stmt->execute()) {
+    die("Database Error: " . $conn->error);
+}
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-    body { padding:30px; background:#f4f7fb; }
-    h2 { color:#1a7a4a; margin-bottom:20px; }
-    .card {
-        background:white;
-        padding:30px;
-        border-radius:14px;
-        box-shadow:0 4px 16px rgba(0,0,0,0.07);
-        max-width:400px;
-        text-align:center;
-    }
-    .card h3 { color:#333; margin-bottom:5px; }
-    .card p { color:#888; font-size:13px; margin-bottom:20px; }
-    .qr-img {
-        width:200px;
-        height:200px;
-        border:3px solid #28a745;
-        border-radius:12px;
-        padding:10px;
-        margin-bottom:20px;
-    }
-    .info { font-size:13px; color:#555; margin-bottom:20px; text-align:left; }
-    .info span { font-weight:600; color:#1a7a4a; }
-    .btn {
-        padding:10px 24px;
-        border:none;
-        border-radius:8px;
-        cursor:pointer;
-        font-size:14px;
-        font-family:'Poppins',sans-serif;
-        font-weight:600;
-        margin:5px;
-    }
-    .btn-print   { background:linear-gradient(135deg,#1a7a4a,#28a745); color:white; }
-    .btn-back    { background:#eee; color:#555; }
-    .btn-download { background:linear-gradient(135deg,#1e3c72,#2a5298); color:white; }
-    .success-msg {
-        background:#d4edda;
-        color:#155724;
-        padding:10px;
-        border-radius:8px;
-        margin-bottom:20px;
-        font-size:13px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>QR Code Generated</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f4f7fb; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+        .success-icon { color: #28a745; font-size: 50px; margin-bottom: 10px; }
+        h2 { color: #333; margin-bottom: 5px; }
+        p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        .qr-img { width: 200px; height: 200px; border: 5px solid #f8f9fa; border-radius: 15px; margin-bottom: 20px; }
+        .patient-info { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: left; margin-bottom: 20px; font-size: 13px; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; }
+        .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; }
+        .btn-primary { background: #1a7a4a; color: white; }
+        .btn-secondary { background: #e9ecef; color: #333; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    </style>
 </head>
 <body>
 
-<h2>🔲 QR Code Generated</h2>
-
 <div class="card">
+    <div class="success-icon">✅</div>
+    <h2>QR Generated!</h2>
+    <p>The QR code for the patient has been successfully created and saved.</p>
 
-    <div class="success-msg">✅ QR Code successfully generated!</div>
+    <img src="<?= $db_save_path ?>" class="qr-img" alt="Patient QR Code">
 
-    <h3><?= htmlspecialchars($patient['firstname'] . ' ' . $patient['lastname']) ?></h3>
-    <p>Patient ID: #<?= $patient['id'] ?></p>
-
-    <img src="<?= $qr_path ?>" class="qr-img" alt="QR Code">
-
-    <div class="info">
-        <p>Gender: <span><?= $patient['gender'] ?></span></p>
-        <p>Birthdate: <span><?= date('M d, Y', strtotime($patient['birthdate'])) ?></span></p>
-        <p>Contact: <span><?= $patient['contact'] ?? '—' ?></span></p>
-        <p>Blood Type: <span><?= $patient['blood_type'] ?? '—' ?></span></p>
+    <div class="patient-info">
+        <strong>Name:</strong> <?= htmlspecialchars($patient['firstname'] . ' ' . $patient['lastname']) ?><br>
+        <strong>Patient ID:</strong> #<?= $id ?><br>
+        <strong>Status:</strong> QR Path Saved to Database
     </div>
 
-    <button class="btn btn-print" onclick="window.print()">🖨️ Print QR</button>
-    <a href="<?= $qr_path ?>" download="patient_<?= $id ?>_qr.png">
-        <button class="btn btn-download">⬇️ Download QR</button>
-    </a>
-    <button class="btn btn-back" onclick="window.top.location='bhw_patientlist.php'">← Back to List</button>
-
+    <div class="btn-group">
+        <a href="patientprofile.php?id=<?= $id ?>" class="btn btn-primary">View Profile</a>
+        <a href="bhw_patientlist.php" class="btn btn-secondary">Back to List</a>
+    </div>
 </div>
 
 </body>
