@@ -27,7 +27,7 @@ try {
     $visit_id = $referral['visit_id'];
     $category = $referral['source_type'];
 
-    /* 2. AUTOMATIC STATUS TRANSITION (Pending to Viewed) */
+    /* 2. AUTOMATIC STATUS TRANSITION */
     if ($referral['status'] == 'pending') {
         $upd = $conn->prepare("UPDATE referrals SET status='viewed' WHERE id=?");
         $upd->bind_param("i", $id);
@@ -66,30 +66,20 @@ try {
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f4f7fb; padding: 20px; color: #333; }
         .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 25px; }
         .patient-name { font-size: 24px; font-weight: 600; color: #2a5298; }
-        
         .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
         .pending { background: #fff3cd; color: #856404; }
         .viewed { background: #d1ecf1; color: #0c5460; }
         .completed { background: #d4edda; color: #155724; }
-
         .section-title { font-size: 16px; font-weight: 600; color: #2a5298; margin: 25px 0 10px 0; display: flex; align-items: center; }
         .section-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: #2a5298; margin-right: 10px; border-radius: 2px; }
-
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         .info-card { background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #edf2f7; }
         .label { font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
         .value { font-size: 15px; font-weight: 600; color: #2d3748; }
-
         .ml-box { background: #fff; border: 2px dashed #cbd5e0; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
-        .ml-content { text-align: left; background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 5px solid #2a5298; margin-bottom: 15px; }
-        
-        .btn-run { background: #2a5298; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
-        .btn-run:hover { background: #1e3c72; transform: translateY(-2px); }
-        
-        .error-msg { background: #fff5f5; color: #c53030; padding: 15px; border-radius: 10px; border: 1px solid #feb2b2; }
+        .btn-run { background: #2a5298; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -103,7 +93,6 @@ try {
         <span class="status-badge <?= strtolower($referral['status']) ?>"><?= $referral['status'] ?></span>
     </div>
 
-    <!-- 1. GENERAL INFORMATION -->
     <div class="section-title">General Information</div>
     <div class="info-grid">
         <div class="info-card"><span class="label">Gender</span><div class="value"><?= ucfirst($referral['gender']) ?></div></div>
@@ -111,77 +100,46 @@ try {
         <div class="info-card"><span class="label">Referral Date</span><div class="value"><?= date('M d, Y | h:i A', strtotime($referral['created_at'])) ?></div></div>
     </div>
 
-    <!-- 2. DYNAMIC CLINICAL DATA (Based on Table) -->
     <div class="section-title"><?= strtoupper($category) ?> Clinical Data</div>
     
     <?php if ($form): ?>
         <div class="info-grid">
-            
-            <!-- --- Fields that exist in most tables --- -->
-            <?php if (isset($form['temperature'])): ?>
-                <div class="info-card"><span class="label">Temperature</span><div class="value"><?= htmlspecialchars($form['temperature']) ?> °C</div></div>
-            <?php endif; ?>
-
             <div class="info-card"><span class="label">Blood Pressure</span><div class="value"><?= htmlspecialchars($form['blood_pressure'] ?? 'N/A') ?></div></div>
-            
-            <?php if (isset($form['spo2'])): ?>
-                <?php $is_low = ($form['spo2'] < 95); ?>
-                <div class="info-card" style="<?= $is_low ? 'border: 1px solid #feb2b2; background: #fff5f5;' : '' ?>">
-                    <span class="label">SpO2 (Oxygen)</span>
-                    <div class="value" style="<?= $is_low ? 'color: #c53030;' : '' ?>">
-                        <?= htmlspecialchars($form['spo2']) ?>% <?= $is_low ? '⚠️' : '' ?>
-                    </div>
-                </div>
-            <?php endif; ?>
-
             <div class="info-card"><span class="label">Heart Rate</span><div class="value"><?= htmlspecialchars($form['heart_rate'] ?? 'N/A') ?> bpm</div></div>
             <div class="info-card"><span class="label">Weight</span><div class="value"><?= htmlspecialchars($form['weight'] ?? '0') ?> kg</div></div>
 
-            <!-- --- Category Specific Fields --- -->
-
             <?php if ($category == 'checkup'): ?>
-                <div class="info-card"><span class="label">Fever?</span><div class="value"><?= strtoupper($form['fever'] ?? 'NO') ?></div></div>
-                <div class="info-card"><span class="label">Cough?</span><div class="value"><?= strtoupper($form['cough'] ?? 'NO') ?></div></div>
-                <div class="info-card"><span class="label">Breathing?</span><div class="value"><?= strtoupper($form['breathing'] ?? 'NO') ?></div></div>
-                <div class="info-card"><span class="label">Duration</span><div class="value"><?= htmlspecialchars($form['duration'] ?? '0') ?> Days</div></div>
-                <div class="info-card" style="grid-column: span 2;">
-                    <span class="label">Symptoms/Remarks</span>
-                    <div class="value"><?= nl2br(htmlspecialchars($form['symptoms'] ?: 'No remarks')) ?></div>
-                </div>
+                <div class="info-card"><span class="label">Temperature</span><div class="value"><?= htmlspecialchars($form['temperature'] ?? '0') ?> °C</div></div>
+                <div class="info-card"><span class="label">SpO2</span><div class="value"><?= htmlspecialchars($form['spo2'] ?? '0') ?>%</div></div>
+                <div class="info-card" style="grid-column: span 2;"><span class="label">Symptoms</span><div class="value"><?= nl2br(htmlspecialchars($form['symptoms'] ?? 'None')) ?></div></div>
 
             <?php elseif ($category == 'immunization'): ?>
                 <div class="info-card"><span class="label">Vaccine</span><div class="value"><?= htmlspecialchars($form['vaccine_name'] ?? 'N/A') ?></div></div>
-                <div class="info-card"><span class="label">Has Allergy?</span><div class="value"><?= htmlspecialchars($form['has_allergy']) ?></div></div>
-                <div class="info-card" style="grid-column: span 2;"><span class="label">Allergy Notes</span><div class="value"><?= htmlspecialchars($form['allergy_notes'] ?: 'None') ?></div></div>
+                <div class="info-card" style="grid-column: span 2;"><span class="label">Allergy Notes</span><div class="value"><?= htmlspecialchars($form['allergy_notes'] ?? 'None') ?></div></div>
 
-            <?php elseif ($category == 'family_planning'): ?>
+            <?php elseif ($category == 'family_planning' || $category == 'FAMILY_PLANNING'): ?>
                 <div class="info-card"><span class="label">Method</span><div class="value"><?= htmlspecialchars($form['method'] ?? 'N/A') ?></div></div>
-                <div class="info-card" style="grid-column: span 2;"><span class="label">Clinical Notes</span><div class="value"><?= htmlspecialchars($form['fp_notes'] ?: 'None') ?></div></div>
+                <div class="info-card" style="grid-column: span 2;">
+                    <span class="label">Clinical Notes</span>
+                    <div class="value">
+                        <?php 
+                            // Sinubukan nating i-check ang iba pang posibleng pangalan ng column para sa notes
+                            echo htmlspecialchars($form['fp_notes'] ?? $form['notes'] ?? $form['remarks'] ?? 'None'); 
+                        ?>
+                    </div>
+                </div>
             <?php endif; ?>
-
         </div>
     <?php else: ?>
-        <div class="error-msg">
-            <strong>⚠️ Record Missing:</strong> Wala kaming mahanap na detalye sa <u><?= $table_map[$category] ?? 'visits' ?></u> table.
-        </div>
+        <p class="error-msg">⚠️ No clinical data found for this referral.</p>
     <?php endif; ?>
 
-    <!-- 3. ML ANALYSIS SECTION -->
     <div class="section-title">Machine Learning Recommendation</div>
     <div class="ml-box">
-        <?php if ($referral['status'] == 'completed' && !empty($referral['ml_result'])): ?>
-            <div class="ml-content">
-                <strong>ML Assessment:</strong><br>
-                <?= nl2br(htmlspecialchars($referral['ml_result'])) ?>
-            </div>
-            <p style="color: #2f855a; font-weight: 600;">✅ Referral Processed</p>
-        <?php else: ?>
-            <p style="margin-bottom: 20px; color: #718096;">Wala pang prediction na ginagawa para sa referral na ito.</p>
-            <form action="checkup_ml.php" method="GET">
-                <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
-                <button type="submit" class="btn-run">🚀 RUN ML ANALYSIS</button>
-            </form>
-        <?php endif; ?>
+        <form action="checkup_ml.php" method="GET">
+            <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+            <button type="submit" class="btn-run">🚀 RUN ML ANALYSIS</button>
+        </form>
     </div>
 
     <div style="margin-top: 30px; text-align: center;">
