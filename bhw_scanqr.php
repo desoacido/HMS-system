@@ -79,7 +79,7 @@ scanner.start(
                 document.getElementById("success").style.display = "block";
 
                 setTimeout(() => {
-                    window.location.href = "patientprofile.php?id=" + patientId;
+                   window.top.location.href = "patientprofile.php?id=" + patientId;
                 }, 1000);
 
             } else {
