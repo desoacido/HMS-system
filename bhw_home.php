@@ -3,31 +3,31 @@ session_start();
 include __DIR__ . '/db.php';
 
 /* TOTAL PATIENTS */
-$totalPatients = $conn->query("
-    SELECT COUNT(*) FROM patients
-")->fetchColumn();
+$res1 = $conn->query("SELECT COUNT(*) as count FROM patients");
+$totalPatients = $res1->fetch_assoc()['count'] ?? 0;
 
 /* NEW PATIENTS (1 visit only per patient) */
-$newPatients = $conn->query("
-    SELECT COUNT(*) FROM (
+$res2 = $conn->query("
+    SELECT COUNT(*) as count FROM (
         SELECT patient_id
         FROM visits
         GROUP BY patient_id
         HAVING COUNT(*) = 1
     ) as t
-")->fetchColumn();
+");
+$newPatients = $res2->fetch_assoc()['count'] ?? 0;
 
 /* RETURNING PATIENTS (more than 1 visit per patient) */
-$returningPatients = $conn->query("
-    SELECT COUNT(*) FROM (
+$res3 = $conn->query("
+    SELECT COUNT(*) as count FROM (
         SELECT patient_id
         FROM visits
         GROUP BY patient_id
         HAVING COUNT(*) > 1
     ) as t
-")->fetchColumn();
+");
+$returningPatients = $res3->fetch_assoc()['count'] ?? 0;
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
