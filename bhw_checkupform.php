@@ -3,20 +3,23 @@ session_start();
 include __DIR__ . '/db.php';
 
 /**
- * FIXED SECURITY CHECK:
- * Ginagamit ang isset() para i-check kung may user_id bago ito i-assign.
+ * SECURITY CHECK:
+ * Sinisigurado na naka-login ang BHW bago maka-access.
  */
 if (!isset($_SESSION['user_id'])) {
-    // Kung walang session, diretso sa login nang walang error
     header("Location: login.php"); 
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
 $patient_id = $_GET['patient_id'] ?? null;
+$category = 'checkup'; // Idinagdag para sa visits table
+
+if (!$patient_id) {
+    die("Error: No patient selected.");
 }
 
-/* 1. GET PATIENT INFO (MySQLi Style) */
+/* 1. GET PATIENT INFO */
 $stmt = $conn->prepare("SELECT * FROM patients WHERE id = ?");
 $stmt->bind_param("i", $patient_id);
 $stmt->execute();
@@ -31,6 +34,7 @@ $age_years = $today->diff($birthdate)->y;
 
 $errors = [];
 
+/* 2. FORM SUBMISSION LOGIC */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $temp      = $_POST['temperature'] ?? 0;
     $bp        = $_POST['bp'] ?? '';
@@ -39,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $weight    = $_POST['weight'] ?? 0;
     $symptoms  = $_POST['symptoms'] ?? '';
     $duration  = $_POST['duration'] ?? 0;
-    $fever     = $_POST['fever'] ?? 'no';
+    $fever      = $_POST['fever'] ?? 'no';
     $cough     = $_POST['cough'] ?? 'no';
     $breathing = $_POST['breathing'] ?? 'no';
 
@@ -52,14 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $conn->begin_transaction();
 
-            // 1. INSERT INTO visits
+            // A. INSERT INTO visits
             $stmt1 = $conn->prepare("INSERT INTO visits (patient_id, category, visit_date, attended_by) VALUES (?, ?, NOW(), ?)");
-            $user_id = $_SESSION['user_id'];
             $stmt1->bind_param("isi", $patient_id, $category, $user_id);
             $stmt1->execute();
             $visit_id = $conn->insert_id;
 
-            // 2. INSERT INTO checkup_visits
+            // B. INSERT INTO checkup_visits
             $stmt2 = $conn->prepare("
                 INSERT INTO checkup_visits (
                     visit_id, temperature, blood_pressure, heart_rate, 
@@ -73,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt2->execute();
             $checkup_id = $conn->insert_id;
 
-            // 3. REFERRAL LOGIC (Para sa Nurse dashboard)
+            // C. REFERRAL LOGIC
             if (isset($_POST['action']) && $_POST['action'] === 'refer') {
                 $stmt3 = $conn->prepare("
                     INSERT INTO referrals (
@@ -81,13 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         status, ml_result, referred_by, created_at
                     ) VALUES (?, ?, 'checkup', ?, 'pending', 'For Review', ?, NOW())
                 ");
-                // source_id dito ay ang checkup_id
                 $stmt3->bind_param("iiii", $patient_id, $visit_id, $checkup_id, $user_id);
                 $stmt3->execute();
             }
 
             $conn->commit();
-            header("Location: bhw_patientHistory.php?patient_id=$patient_id&msg=Checkup Saved & Referred");
+            header("Location: bhw_patientHistory.php?patient_id=$patient_id&msg=Immunization Saved");
             exit;
 
         } catch (Exception $e) {
