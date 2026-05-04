@@ -384,10 +384,10 @@ $visitCount   = count($visitHistory);
         <button class="close-btn" onclick="closeModal()">✕</button>
         <h3><?= htmlspecialchars($p['firstname'].' '.$p['lastname']) ?></h3>
         <p>Patient ID: #<?= $p['id'] ?></p>
-        <img id="modalQR" src="<?= htmlspecialchars($p['qr_code'] ?? '') ?>" class="qr-big">
+        <img id="modalQR" src="<?= $qr_url ?>" class="qr-big">
         <div class="modal-btns">
             <button class="btn-sm btn-sm-green" onclick="printQR()">🖨️ Print</button>
-            <a class="btn-sm btn-sm-blue" href="<?= htmlspecialchars($p['qr_code'] ?? '') ?>" download>⬇️ Download</a>
+            <a class="btn-sm btn-sm-blue" href="<?= $qr_url ?>" download>
             <button class="btn-sm btn-sm-gray" onclick="closeModal()">✕ Close</button>
         </div>
     </div>
