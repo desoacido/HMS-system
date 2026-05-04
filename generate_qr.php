@@ -3,48 +3,42 @@ session_start();
 include __DIR__ . '/db.php';
 
 $id = $_GET['id'] ?? null;
-
 if (!$id) {
     die("No patient selected.");
 }
 
 // GET PATIENT INFO
-// 1. Ihanda ang statement
 $stmt = $conn->prepare("SELECT * FROM patients WHERE id = ?");
-
-// 2. I-bind ang ID (i = integer)
 $stmt->bind_param("i", $id);
-
-// 3. I-execute
 $stmt->execute();
-
-// 4. Kunin ang result at i-fetch ang data
 $result = $stmt->get_result();
 $patient = $result->fetch_assoc();
 
 if (!$patient) {
     die("Patient not found.");
 }
-?>
 
-// GENERATE QR USING GOOGLE CHART API (no library needed!)
-$qr_data    = $patient['id'];  // QR stores the patient ID
-$qr_url     = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . $qr_data;
-$qr_folder  = __DIR__ . '/qrcodes/';
-$qr_file    = $qr_folder . 'patient_' . $id . '.png';
-$qr_path    = 'qrcodes/patient_' . $id . '.png';
+// ✅ QR GENERATION — must be inside <?php ?> tags!
+$qr_data   = $patient['id'];
+$qr_url    = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . $qr_data;
+$qr_folder = __DIR__ . '/qrcodes/';
+$qr_file   = $qr_folder . 'patient_' . $id . '.png';
+$qr_path   = 'qrcodes/patient_' . $id . '.png';
 
-// CREATE FOLDER IF NOT EXISTS
 if (!file_exists($qr_folder)) {
     mkdir($qr_folder, 0777, true);
 }
 
-// DOWNLOAD AND SAVE QR IMAGE
 file_put_contents($qr_file, file_get_contents($qr_url));
 
-// SAVE QR PATH TO DATABASE
+// ✅ FIXED: MySQLi uses bind_param, not execute([...])
 $stmt2 = $conn->prepare("UPDATE patients SET qr_code = ? WHERE id = ?");
-$stmt2->execute([$qr_path, $id]);
+$stmt2->bind_param("si", $qr_path, $id);
+$stmt2->execute();
+?>
+<!DOCTYPE html>
+<html>
+<!-- ... rest of your HTML stays the same ... -->
 
 ?>
 <!DOCTYPE html>
