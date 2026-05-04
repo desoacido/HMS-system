@@ -15,10 +15,10 @@ try {
         JOIN patients p ON p.id = r.patient_id 
         WHERE r.id = ?
     ");
-    $stmt->bind_param("i", $id); // MySQLi needs bind_param
+    $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-    $referral = $result->fetch_assoc(); // Use fetch_assoc() instead of fetch(PDO...)
+    $referral = $result->fetch_assoc();
 
     if (!$referral) {
         die("Referral not found.");
@@ -65,7 +65,7 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f4f7fb; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 25px; }
         .patient-name { font-size: 24px; font-weight: 600; color: #2a5298; }
@@ -86,7 +86,7 @@ try {
         .ml-box { background: #fff; border: 2px dashed #cbd5e0; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
         .ml-content { text-align: left; background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 5px solid #2a5298; margin-bottom: 15px; }
         
-        .btn-run { background: #2a5298; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-run { background: #2a5298; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn-run:hover { background: #1e3c72; transform: translateY(-2px); }
         
         .error-msg { background: #fff5f5; color: #c53030; padding: 15px; border-radius: 10px; border: 1px solid #feb2b2; }
@@ -103,7 +103,7 @@ try {
         <span class="status-badge <?= strtolower($referral['status']) ?>"><?= $referral['status'] ?></span>
     </div>
 
-    <!-- 1. BASIC INFORMATION -->
+    <!-- 1. GENERAL INFORMATION -->
     <div class="section-title">General Information</div>
     <div class="info-grid">
         <div class="info-card"><span class="label">Gender</span><div class="value"><?= ucfirst($referral['gender']) ?></div></div>
@@ -111,54 +111,79 @@ try {
         <div class="info-card"><span class="label">Referral Date</span><div class="value"><?= date('M d, Y | h:i A', strtotime($referral['created_at'])) ?></div></div>
     </div>
 
-    <!-- 2. DYNAMIC VISIT DETAILS -->
+    <!-- 2. DYNAMIC CLINICAL DATA (Based on Table) -->
     <div class="section-title"><?= strtoupper($category) ?> Clinical Data</div>
     
     <?php if ($form): ?>
         <div class="info-grid">
             
-           
-            <div class="info-card"><span class="label">Blood Pressure</span><div class="value"><?= htmlspecialchars($form['blood_pressure']) ?></div></div>
-            <div class="info-card"><span class="label">Weight</span><div class="value"><?= htmlspecialchars($form['weight']) ?> kg</div></div>
-            <div class="info-card"><span class="label">Heart Rate</span><div class="value"><?= htmlspecialchars($form['heart_rate'] ?? 'N/A') ?> bpm</div></div>
-
-            <!-- Immunization Specific (Based on Screenshot 313) -->
-            <?php if ($category == 'immunization'): ?>
-                <div class="info-card"><span class="label">Has Allergy?</span><div class="value"><?= htmlspecialchars($form['has_allergy']) ?></div></div>
-                <div class="info-card"><span class="label">Has Fever?</span><div class="value"><?= htmlspecialchars($form['has_fever']) ?></div></div>
-                <div class="info-card" style="grid-column: span 2;"><span class="label">Allergy Notes</span><div class="value"><?= htmlspecialchars($form['allergy_notes'] ?: 'None') ?></div></div>
+            <!-- --- Fields that exist in most tables --- -->
+            <?php if (isset($form['temperature'])): ?>
+                <div class="info-card"><span class="label">Temperature</span><div class="value"><?= htmlspecialchars($form['temperature']) ?> °C</div></div>
             <?php endif; ?>
 
-            <!-- Add other specific fields for family_planning or checkup here if needed -->
+            <div class="info-card"><span class="label">Blood Pressure</span><div class="value"><?= htmlspecialchars($form['blood_pressure'] ?? 'N/A') ?></div></div>
+            
+            <?php if (isset($form['spo2'])): ?>
+                <?php $is_low = ($form['spo2'] < 95); ?>
+                <div class="info-card" style="<?= $is_low ? 'border: 1px solid #feb2b2; background: #fff5f5;' : '' ?>">
+                    <span class="label">SpO2 (Oxygen)</span>
+                    <div class="value" style="<?= $is_low ? 'color: #c53030;' : '' ?>">
+                        <?= htmlspecialchars($form['spo2']) ?>% <?= $is_low ? '⚠️' : '' ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <div class="info-card"><span class="label">Heart Rate</span><div class="value"><?= htmlspecialchars($form['heart_rate'] ?? 'N/A') ?> bpm</div></div>
+            <div class="info-card"><span class="label">Weight</span><div class="value"><?= htmlspecialchars($form['weight'] ?? '0') ?> kg</div></div>
+
+            <!-- --- Category Specific Fields --- -->
+
+            <?php if ($category == 'checkup'): ?>
+                <div class="info-card"><span class="label">Fever?</span><div class="value"><?= strtoupper($form['fever'] ?? 'NO') ?></div></div>
+                <div class="info-card"><span class="label">Cough?</span><div class="value"><?= strtoupper($form['cough'] ?? 'NO') ?></div></div>
+                <div class="info-card"><span class="label">Breathing?</span><div class="value"><?= strtoupper($form['breathing'] ?? 'NO') ?></div></div>
+                <div class="info-card"><span class="label">Duration</span><div class="value"><?= htmlspecialchars($form['duration'] ?? '0') ?> Days</div></div>
+                <div class="info-card" style="grid-column: span 2;">
+                    <span class="label">Symptoms/Remarks</span>
+                    <div class="value"><?= nl2br(htmlspecialchars($form['symptoms'] ?: 'No remarks')) ?></div>
+                </div>
+
+            <?php elseif ($category == 'immunization'): ?>
+                <div class="info-card"><span class="label">Vaccine</span><div class="value"><?= htmlspecialchars($form['vaccine_name'] ?? 'N/A') ?></div></div>
+                <div class="info-card"><span class="label">Has Allergy?</span><div class="value"><?= htmlspecialchars($form['has_allergy']) ?></div></div>
+                <div class="info-card" style="grid-column: span 2;"><span class="label">Allergy Notes</span><div class="value"><?= htmlspecialchars($form['allergy_notes'] ?: 'None') ?></div></div>
+
+            <?php elseif ($category == 'family_planning'): ?>
+                <div class="info-card"><span class="label">Method</span><div class="value"><?= htmlspecialchars($form['method'] ?? 'N/A') ?></div></div>
+                <div class="info-card" style="grid-column: span 2;"><span class="label">Clinical Notes</span><div class="value"><?= htmlspecialchars($form['fp_notes'] ?: 'None') ?></div></div>
+            <?php endif; ?>
+
         </div>
     <?php else: ?>
         <div class="error-msg">
-            <strong>⚠️ Data Not Found:</strong> Could not retrieve detailed records from <u><?= $category ?>_visits</u> for Visit ID: <?= $visit_id ?>.
+            <strong>⚠️ Record Missing:</strong> Wala kaming mahanap na detalye sa <u><?= $table_map[$category] ?? 'visits' ?></u> table.
         </div>
     <?php endif; ?>
 
     <!-- 3. ML ANALYSIS SECTION -->
-    <!-- 3. ML ANALYSIS SECTION -->
-<div class="section-title">Machine Learning Recommendation</div>
-<div class="ml-box">
-    <?php if ($referral['status'] == 'completed' && !empty($referral['ml_result'])): ?>
-        <div class="ml-content">
-            <strong>ML Result:</strong><br>
-            <?= nl2br(htmlspecialchars($referral['ml_result'])) ?>
-        </div>
-        <p style="color: green;">✔ Transaction Completed</p>
-    <?php else: ?>
-        <p>No prediction generated yet.</p>
+    <div class="section-title">Machine Learning Recommendation</div>
+    <div class="ml-box">
+        <?php if ($referral['status'] == 'completed' && !empty($referral['ml_result'])): ?>
+            <div class="ml-content">
+                <strong>ML Assessment:</strong><br>
+                <?= nl2br(htmlspecialchars($referral['ml_result'])) ?>
+            </div>
+            <p style="color: #2f855a; font-weight: 600;">✅ Referral Processed</p>
+        <?php else: ?>
+            <p style="margin-bottom: 20px; color: #718096;">Wala pang prediction na ginagawa para sa referral na ito.</p>
+            <form action="checkup_ml.php" method="GET">
+                <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+                <button type="submit" class="btn-run">🚀 RUN ML ANALYSIS</button>
+            </form>
+        <?php endif; ?>
+    </div>
 
-        <!-- ✅ FIXED: Use $id and $form instead of $details -->
-        <form action="checkup_ml.php" method="GET">
-            <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
-            <button type="submit" class="btn-run" style="background-color: #2a5298; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                🚀 RUN ML ANALYSIS
-            </button>
-        </form>
-    <?php endif; ?>
-</div>
     <div style="margin-top: 30px; text-align: center;">
         <a href="nurse_dashboard.php" style="text-decoration: none; color: #718096; font-size: 14px;">← Back to Dashboard</a>
     </div>
