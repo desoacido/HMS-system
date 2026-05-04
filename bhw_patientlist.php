@@ -2,7 +2,7 @@
 session_start();
 include __DIR__ . '/db.php';
 
-// Mas simplified na query para sa listahan
+// Inihahanda ang query
 $stmt = $conn->prepare("
     SELECT p.id, p.firstname, p.lastname, p.qr_code, COUNT(v.id) as visit_count
     FROM patients p
@@ -10,8 +10,12 @@ $stmt = $conn->prepare("
     GROUP BY p.id
     ORDER BY p.lastname ASC
 ");
+
 $stmt->execute();
-$patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Para sa MySQLi, ganito ang pagkuha ng resulta:
+$result = $stmt->get_result();
+$patients = $result->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
