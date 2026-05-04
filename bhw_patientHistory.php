@@ -44,3 +44,66 @@ while ($row = $result_visits->fetch_assoc()) {
     $visits[] = $row;
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient History</title>
+    <!-- Isama ang SweetAlert2 para sa magandang alert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; padding: 20px; background-color: #f4f7fb; }
+        .history-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .status-pending { color: orange; font-weight: bold; }
+        .status-completed { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="history-card">
+    <h2>Visit History for <?= htmlspecialchars($patient['firstname'] . ' ' . $patient['lastname']) ?></h2>
+    <a href="bhw_dashboard.php">← Back to Dashboard</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Vaccine</th>
+                <th>Referral Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($visits as $v): ?>
+            <tr>
+                <td><?= date('M d, Y', strtotime($v['visit_date'])) ?></td>
+                <td><?= ucfirst($v['category']) ?></td>
+                <td><?= htmlspecialchars($v['vaccine_name'] ?? 'N/A') ?></td>
+                <td>
+                    <span class="status-<?= strtolower($v['referral_status']) ?>">
+                        <?= strtoupper($v['referral_status'] ?? 'NONE') ?>
+                    </span>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
+<!-- DITO LALABAS ANG ALERT PAGKA-REFER -->
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'Immunization Saved'): ?>
+<script>
+    Swal.fire({
+        title: 'Successfully Sent!',
+        text: 'The record has been saved and referred to the nurse.',
+        icon: 'success',
+        confirmButtonColor: '#8e44ad'
+    });
+</script>
+<?php endif; ?>
+
+</body>
+</html>
