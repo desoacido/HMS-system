@@ -2,22 +2,25 @@
 include 'db.php';
 
 // 1. Kunin ang status filter mula sa URL (?status=pending)
-// Default ay 'all' kung wala itong laman
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
+$refs = []; // Dito itatago ang mga records
+
 try {
-    // 2. Dynamic SQL Query base sa filter
+    // 2. Dynamic SQL Query base sa filter (MySQLi Style)
     if ($status_filter !== 'all') {
-        // Ipakita lang ang piniling status (e.g. pending, viewed, or completed)
+        // Gagamit ng '?' placeholder para sa MySQLi
         $stmt = $conn->prepare("
             SELECT r.*, p.firstname, p.lastname, v.category
             FROM referrals r
             JOIN patients p ON p.id = r.patient_id
             JOIN visits v ON v.id = r.visit_id
-            WHERE r.status = :status
+            WHERE r.status = ?
             ORDER BY r.created_at DESC
         ");
-        $stmt->execute(['status' => $status_filter]);
+        $stmt->bind_param("s", $status_filter); // "s" means string
+        $stmt->execute();
+        $result = $stmt->get_result();
     } else {
         // Default: Ipakita lahat ng referrals
         $stmt = $conn->prepare("
@@ -28,11 +31,15 @@ try {
             ORDER BY r.created_at DESC
         ");
         $stmt->execute();
+        $result = $stmt->get_result();
     }
     
-    $refs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Kunin ang lahat ng data at ilagay sa $refs array
+    while ($row = $result->fetch_assoc()) {
+        $refs[] = $row;
+    }
 
-} catch (PDOException $e) {
+} catch (Exception $e) {
     die("Database Error: " . $e->getMessage());
 }
 ?>
