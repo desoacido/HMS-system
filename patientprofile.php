@@ -5,19 +5,26 @@ include __DIR__ . '/db.php';
 $id = $_GET['id'] ?? null;
 if (!$id) { header("Location: bhw_patientlist.php"); exit(); }
 
+// PATIENT INFORMATION
 $stmt = $conn->prepare("
     SELECT p.*, u.fullname as bhw_name
     FROM patients p
     LEFT JOIN users u ON u.id = p.registered_by
     WHERE p.id = ?
 ");
-$stmt->execute([$id]);
-$p = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->bind_param("i", $id); // Sa MySQLi, kailangan ng bind_param para sa '?'
+$stmt->execute();
+$res = $stmt->get_result();
+$p = $res->fetch_assoc();
+
 if (!$p) { die("Patient not found."); }
 
-$visits = $conn->prepare("SELECT * FROM visits WHERE patient_id = ? ORDER BY visit_date DESC");
-$visits->execute([$id]);
-$visitHistory = $visits->fetchAll(PDO::FETCH_ASSOC);
+// VISIT HISTORY
+$vStmt = $conn->prepare("SELECT * FROM visits WHERE patient_id = ? ORDER BY visit_date DESC");
+$vStmt->bind_param("i", $id);
+$vStmt->execute();
+$vRes = $vStmt->get_result();
+$visitHistory = $vRes->fetch_all(MYSQLI_ASSOC);
 $visitCount   = count($visitHistory);
 ?>
 <!DOCTYPE html>
