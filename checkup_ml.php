@@ -1,6 +1,8 @@
 <?php
 session_start();
 include __DIR__ . '/db.php';
+include __DIR__ . '/config.php';
+$apiKey = GEMINI_API_KEY;
 
 /* ================= INPUT ================= */
 $referral_id = $_GET['id'] ?? $_POST['referral_id'] ?? null;
