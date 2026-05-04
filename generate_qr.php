@@ -40,7 +40,9 @@ $image_content = file_get_contents($qr_url);
 if ($image_content === false) {
     die("Error: Could not generate QR image from API.");
 }
-file_put_contents($qr_file_path, $image_content);
+if (file_put_contents($qr_file_path, $image_content) === false) {
+    die("Error: Failed to save QR image. Check folder permissions.");
+}
 
 // 6. I-update ang database gamit ang MySQLi Prepared Statement
 $update_stmt = $conn->prepare("UPDATE patients SET qr_code = ? WHERE id = ?");
