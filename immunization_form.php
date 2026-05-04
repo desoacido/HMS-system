@@ -1,6 +1,24 @@
 <?php
 session_start();
 include __DIR__ . '/db.php';
+
+// Kunin ang IDs mula sa URL kung meron (halimbawa galing sa 'Add Visit' button)
+$visit_id = $_GET['visit_id'] ?? '';
+$patient_id = $_GET['patient_id'] ?? '';
+
+// Halimbawa: Kung gusto mong i-check kung valid ang patient_id
+if (!empty($patient_id)) {
+    $stmt = $conn->prepare("SELECT firstname, lastname FROM patients WHERE id = ?");
+    $stmt->bind_param("i", $patient_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $patient = $result->fetch_assoc(); // TAMA: MySQLi syntax
+    
+    if (!$patient) {
+        // Opsyonal: alert kung walang nahanap na pasyente
+        echo "<script>alert('Patient not found!');</script>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
