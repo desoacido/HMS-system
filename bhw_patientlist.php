@@ -173,7 +173,7 @@ $patients = $result->fetch_all(MYSQLI_ASSOC);
                 
                 <!-- QR BUTTON -->
                 <?php if (!empty($p['qr_code'])): ?>
-                    <button class="btn-qr" onclick="viewQR('<?= $p['qr_code'] ?>', '<?= $fullName ?>', '<?= $p['id'] ?>')">🔲</button>
+                    <button class="btn-qr" onclick="viewQR('<?= $p['id'] ?>', '<?= $fullName ?>', '<?= $p['id'] ?>')">🔲</button>
                 <?php else: ?>
                     <button class="btn-qr" onclick="window.location='generate_qr.php?id=<?= $p['id'] ?>'" title="Generate QR">➕</button>
                 <?php endif; ?>
@@ -219,14 +219,18 @@ function filterCards() {
     document.getElementById('noResult').style.display = visibleCount === 0 ? 'block' : 'none';
 }
 
-function viewQR(src, name, id) {
-    document.getElementById('modalQR').src = src;
+function viewQR(patientId, name, id) {
+    // Gamitin ang API para gumawa ng QR — walang file saving
+    const baseUrl = "https://hms-system-1-l6jn.onrender.com";
+    const qrData = encodeURIComponent(baseUrl + "/patientprofile.php?id=" + patientId);
+    const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + qrData;
+
+    document.getElementById('modalQR').src = qrUrl;
     document.getElementById('modalName').textContent = name;
     document.getElementById('modalId').textContent = 'ID: #' + id;
-    document.getElementById('downloadBtn').href = src;
+    document.getElementById('downloadBtn').href = qrUrl;
     document.getElementById('qrModal').classList.add('show');
 }
-
 function closeModal() {
     document.getElementById('qrModal').classList.remove('show');
 }
