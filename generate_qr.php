@@ -9,13 +9,23 @@ if (!$id) {
 }
 
 // GET PATIENT INFO
+// 1. Ihanda ang statement
 $stmt = $conn->prepare("SELECT * FROM patients WHERE id = ?");
-$stmt->execute([$id]);
-$patient = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// 2. I-bind ang ID (i = integer)
+$stmt->bind_param("i", $id);
+
+// 3. I-execute
+$stmt->execute();
+
+// 4. Kunin ang result at i-fetch ang data
+$result = $stmt->get_result();
+$patient = $result->fetch_assoc();
 
 if (!$patient) {
     die("Patient not found.");
 }
+?>
 
 // GENERATE QR USING GOOGLE CHART API (no library needed!)
 $qr_data    = $patient['id'];  // QR stores the patient ID
