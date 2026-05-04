@@ -3,16 +3,23 @@ session_start();
 include __DIR__ . '/db.php';
 
 // FETCH ALL PATIENTS
-$stmt = $conn->prepare("
-    SELECT p.*, u.username AS registered_by_name
+// Gamit ang MySQLi connection ($conn)
+$query = "
+    SELECT p.*, u.fullname AS registered_by_name
     FROM patients p
     LEFT JOIN users u ON p.registered_by = u.id
     ORDER BY p.id DESC
-");
-$stmt->execute();
+";
 
-$patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$result = $conn->query($query);
+
+// Dito natin papalitan ang fetchAll() ng MySQLi version
+$patients = $result->fetch_all(MYSQLI_ASSOC);
 $total = count($patients);
+
+// Para sa Success Modal logic
+$saved = isset($_GET['saved']) ? true : false;
+$patient_name = isset($_GET['name']) ? $_GET['name'] : '';
 ?>
 <!DOCTYPE html>
 <html>
