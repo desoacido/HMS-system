@@ -7,25 +7,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'nurse') {
     exit();
 }
 
-try {
-    // 1. New Referrals (pending)
-    $stmt_new = $conn->prepare("SELECT COUNT(*) FROM referrals WHERE status = 'pending'");
-    $stmt_new->execute();
-    $count_new = $stmt_new->fetchColumn();
+// 1. New Referrals (pending)
+$res_new = $conn->query("SELECT COUNT(*) as count FROM referrals WHERE status = 'pending'");
+$count_new = ($res_new) ? $res_new->fetch_assoc()['count'] : 0;
 
-    // 2. In-Progress (viewed)
-    $stmt_viewed = $conn->prepare("SELECT COUNT(*) FROM referrals WHERE status = 'viewed'");
-    $stmt_viewed->execute();
-    $count_viewed = $stmt_viewed->fetchColumn();
+// 2. In-Progress (viewed)
+$res_viewed = $conn->query("SELECT COUNT(*) as count FROM referrals WHERE status = 'viewed'");
+$count_viewed = ($res_viewed) ? $res_viewed->fetch_assoc()['count'] : 0;
 
-    // 3. Completed
-    $stmt_done = $conn->prepare("SELECT COUNT(*) FROM referrals WHERE status = 'completed'");
-    $stmt_done->execute();
-    $count_done = $stmt_done->fetchColumn();
-
-} catch (PDOException $e) {
-    die("Database Error: " . $e->getMessage());
-}
+// 3. Completed
+$res_done = $conn->query("SELECT COUNT(*) as count FROM referrals WHERE status = 'completed'");
+$count_done = ($res_done) ? $res_done->fetch_assoc()['count'] : 0;
 ?>
 
 <!DOCTYPE html>
