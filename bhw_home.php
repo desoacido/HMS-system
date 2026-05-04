@@ -96,7 +96,7 @@ h2 {
 
 <div class="cards">
     <!-- Card para sa Total Patients -->
-<a href="patient_list.php" style="text-decoration: none; color: inherit;">
+<a href="bhw_patientlist.php" style="text-decoration: none; color: inherit;">
     <div class="card">
         <h3>9</h3>
         <p>Total Patients</p>
