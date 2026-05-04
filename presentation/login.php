@@ -158,7 +158,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="/application/controllers/login_process.php" method="POST">
+        <form action="/hms2/application/controllers/login_process.php" method="POST">
 
             <div class="input-group">
                 <label>Username</label>

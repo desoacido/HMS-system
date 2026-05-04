@@ -1,13 +1,0 @@
-€•°      Œsklearn.feature_extraction.text”ŒTfidfVectorizer”“”)”}”(Œinput”Œcontent”Œencoding”Œutf-8”Œdecode_error”Œstrict”Œ
-strip_accents”NŒpreprocessor”NŒ	tokenizer”NŒanalyzer”Œword”Œ	lowercase”ˆŒ
-token_pattern”Œ
-(?u)\b\w\w+\b”Œ
-stop_words”NŒmax_df”G?ð      Œmin_df”KŒmax_features”NŒngram_range”KK†”Œ
-vocabulary”NŒbinary”‰Œdtype”Œnumpy”Œfloat64”“”Œnorm”Œl2”Œuse_idf”ˆŒ
-smooth_idf”ˆŒsublinear_tf”‰Œ_tfidf”h ŒTfidfTransformer”“”)”}”(hh h!ˆh"ˆh#‰Œn_features_in_”KYŒidf_”Œjoblib.numpy_pickle”ŒNumpyArrayWrapper”“”)”}”(Œsubclass”hŒndarray”“”Œshape”KY…”Œorder”ŒC”hhŒdtype”“”Œf8”‰ˆ‡”R”(KŒ<”NNNJÿÿÿÿJÿÿÿÿK t”bŒ
-allow_mmap”ˆŒnumpy_array_alignment_bytes”KubÿÿÿÿhÜjzlü@hÜjzlü@hÜjzlü@³€¸H¤@hÜjzlü@hÜjzlü@hÜjzlü@U*5Hm@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@äâž;:]@hÜjzlü@hÜjzlü@äâž;:]@hÜjzlü@äâž;:]@äâž;:]@hÜjzlü@äâž;:]@hÜjzlü@äâž;:]@äâž;:]@äâž;:]@hÜjzlü@hÜjzlü@hÜjzlü@äâž;:]@äâž;:]@äâž;:]@hÜjzlü@hÜjzlü@äâž;:]@äâž;:]@hÜjzlü@hÜjzlü@äâž;:]@hÜjzlü@U*5Hm@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@³€¸H¤@äâž;:]@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@äâž;:]@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@U*5Hm@hÜjzlü@hÜjzlü@äâž;:]@³€¸H¤@äâž;:]@äâž;:]@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@U*5Hm@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@hÜjzlü@L7·ã.@•)      Œ_sklearn_version”Œ1.8.0”ubŒfixed_vocabulary_”‰Œ_stop_words_id”ŠÈlisþŒvocabulary_”}”(Œcough”KŒfever”KŒheadache”K"Œchest”KŒpain”K=Œcold”KŒbcg”K
-Œpentavalent”K@Œ	hepatitis”K#Œmeasles”K2Œpolio”KCŒvaccine”KXŒconsultation”KŒfamily”KŒplanning”KBŒpills”KAŒ
-injectable”K(Œimplant”K&Œdose”KŒshot”KKŒoral”K;Œfp”K!Œrefill”KGŒdmpa”KŒ	insertion”K)Œubo”KUŒat”KŒsipon”KLŒ
-nilalagnat”K:Œmasakit”K1Œang”KŒulo”KVŒnahihilo”K7Œ	naduduwal”K5Œtiyan”KRŒnagtatae”K6Œsakit”KJŒng”K8Œkatawan”K+Œngalay”K9Œlikod”K.Œbakuna”K
-Œlaban”K,Œsa”KIŒtigdas”KQŒturok”KTŒpara”K?Œbaby”K	Œanti”KŒtetanus”KPŒbirth”KŒcontrol”KŒmagpapa”K/Œcondom”KŒrequest”KHŒiud”K*Œcheckup”KŒ	lalamunan”K-Œ
-pangangati”K>Œbalat”KŒbatok”KŒhingal”K%Œpagod”K<Œ	trangkaso”KSŒbeke”KŒmumps”K3Œchicken”KŒpox”KDŒasthma”KŒattack”KŒhi”K$Œblood”KŒpressure”KFŒmagtatanong”K0Œbelly”KŒache”KŒmuscle”K4Œstomach”KMŒcramps”KŒfor”K Œinfant”K'Œ1st”K Œprenatal”KEŒuti”KWŒsymptoms”KOŒ	arthritis”KŒdengue”KŒsuspect”KNŒadvice”Kuh@hAub.

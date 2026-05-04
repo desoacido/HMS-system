@@ -3,7 +3,7 @@ session_start();
 include __DIR__ . '/../config/db.php';
 
 if (!isset($_POST['username']) || !isset($_POST['password'])) {
-    header("Location: /presentation/login.php");
+    header("Location: /hms2/presentation/login.php");
     exit();
 }
 
@@ -19,21 +19,21 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 // USER NOT FOUND
 if (!$user) {
     $_SESSION['error'] = "User not found!";
-    header("Location: /presentation/login.php");
+    header("Location: /hms2/presentation/login.php");
     exit();
 }
 
 // STATUS CHECK
 if ($user['status'] == 'inactive') {
     $_SESSION['error'] = "Account is deactivated!";
-    header("Location: /presentation/login.php");
+    header("Location: /hms2/presentation/login.php");
     exit();
 }
 
 // PASSWORD CHECK
 if (!password_verify($password, $user['password'])) {
     $_SESSION['error'] = "Wrong password!";
-    header("Location: /presentation/login.php");
+    header("Location: /hms2/presentation/login.php");
     exit();
 }
 
@@ -44,16 +44,16 @@ $_SESSION['fullname'] = $user['fullname'];
 
 // FIRST LOGIN CHECK
 if ($user['must_change_password'] == 1) {
-    header("Location: /presentation/change_password.php");
+    header("Location: /hms2/presentation/change_password.php");
     exit();
 }
 
 if ($user['role'] == 'admin') {
-    header("Location: /presentation/admin/dashboard.php");
+    header("Location: /hms2/presentation/admin/dashboard.php");
 } elseif ($user['role'] == 'bhw') {
-    header("Location: /presentation/bhw/dashboard.php");
+    header("Location: /hms2/presentation/bhw/dashboard.php");
 } else {
-    header("Location: /presentation/nurse/dashboard.php");
+    header("Location: /hms2/presentation/nurse/dashboard.php");
 }
 
 // ROLE REDIRECT
