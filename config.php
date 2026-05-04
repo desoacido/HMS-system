@@ -1,0 +1,2 @@
+<?php
+define('GEMINI_API_KEY', 'your-new-api-key-here');
