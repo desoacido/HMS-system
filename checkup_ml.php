@@ -78,7 +78,7 @@ Treat missing data as risk factors.
 ";
 
 /* ================= GEMINI API ================= */
-$apiKey = "AIzaSyCdF_sWFvUTMxrz6z9NtxM2mu6MkCHWMaI";
+$apiKey = "AIzaSyAsbhaBo7cJMU2v-yYI1gi4za4itGCfPoU";
 $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=".$apiKey;
 
 $payload = [
