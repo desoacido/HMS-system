@@ -15,8 +15,10 @@ try {
         JOIN patients p ON p.id = r.patient_id 
         WHERE r.id = ?
     ");
-    $stmt->execute([$id]);
-    $referral = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->bind_param("i", $id); // MySQLi needs bind_param
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $referral = $result->fetch_assoc(); // Use fetch_assoc() instead of fetch(PDO...)
 
     if (!$referral) {
         die("Referral not found.");
@@ -27,28 +29,30 @@ try {
 
     /* 2. AUTOMATIC STATUS TRANSITION (Pending to Viewed) */
     if ($referral['status'] == 'pending') {
-        $conn->prepare("UPDATE referrals SET status='viewed' WHERE id=?")->execute([$id]);
+        $upd = $conn->prepare("UPDATE referrals SET status='viewed' WHERE id=?");
+        $upd->bind_param("i", $id);
+        $upd->execute();
         $referral['status'] = 'viewed';
     }
 
     /* 3. FETCH SPECIFIC FORM DATA BASED ON CATEGORY */
     $form = [];
-    if ($category == 'checkup') {
-        $stmt = $conn->prepare("SELECT * FROM checkup_visits WHERE visit_id=?");
-        $stmt->execute([$visit_id]);
-        $form = $stmt->fetch(PDO::FETCH_ASSOC);
-    } elseif ($category == 'immunization') {
-        $stmt = $conn->prepare("SELECT * FROM immunization_visits WHERE visit_id=?");
-        $stmt->execute([$visit_id]);
-        $form = $stmt->fetch(PDO::FETCH_ASSOC);
-    } elseif ($category == 'family_planning') {
-        $stmt = $conn->prepare("SELECT * FROM family_planning_visits WHERE visit_id=?");
-        $stmt->execute([$visit_id]);
-        $form = $stmt->fetch(PDO::FETCH_ASSOC);
+    $table_map = [
+        'checkup' => 'checkup_visits',
+        'immunization' => 'immunization_visits',
+        'family_planning' => 'family_planning_visits'
+    ];
+
+    if (array_key_exists($category, $table_map)) {
+        $table = $table_map[$category];
+        $stmt = $conn->prepare("SELECT * FROM $table WHERE visit_id=?");
+        $stmt->bind_param("i", $visit_id);
+        $stmt->execute();
+        $form = $stmt->get_result()->fetch_assoc();
     }
 
-} catch (PDOException $e) {
-    die("Database Error: " . $e->getMessage());
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage());
 }
 ?>
 
