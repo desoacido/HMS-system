@@ -2,6 +2,12 @@
 session_start();
 include __DIR__ . '/db.php';
 
+// ✅ DAGDAG NA SESSION CHECK
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 $patient_id = $_GET['patient_id'] ?? null;
 if (!$patient_id) die("Invalid patient.");
 
