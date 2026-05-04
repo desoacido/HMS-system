@@ -1,6 +1,5 @@
 <?php
-session_start();
-include __DIR__ . '/db.php';
+include 'db.php';
 
 if (!isset($_GET['id'])) {
     die("Referral ID is missing.");
@@ -9,7 +8,7 @@ if (!isset($_GET['id'])) {
 $id = $_GET['id'];
 
 try {
-    /* 1. FETCH MAIN REFERRAL & PATIENT INFO */
+    /* 1. FETCH MAIN REFERRAL DATA & PATIENT INFO */
     $stmt = $conn->prepare("
         SELECT r.*, p.firstname, p.lastname, p.birthdate, p.gender 
         FROM referrals r 
@@ -18,17 +17,17 @@ try {
     ");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    $referral = $stmt->get_result()->fetch_assoc();
+    $result = $stmt->get_result();
+    $referral = $result->fetch_assoc();
 
     if (!$referral) {
         die("Referral not found.");
     }
 
     $visit_id = $referral['visit_id'];
-    $category = strtolower($referral['source_type']); // Ginawang lowercase para sa table mapping
-    $source_id = $referral['source_id']; // Importante para sa FP 19 fields
+    $category = $referral['source_type'];
 
-    /* 2. AUTOMATIC STATUS TRANSITION (Pending to Viewed) */
+    /* 2. AUTOMATIC STATUS TRANSITION */
     if ($referral['status'] == 'pending') {
         $upd = $conn->prepare("UPDATE referrals SET status='viewed' WHERE id=?");
         $upd->bind_param("i", $id);
@@ -36,28 +35,21 @@ try {
         $referral['status'] = 'viewed';
     }
 
-    /* 3. DYNAMIC FETCHING BASED ON 3 CATEGORIES */
+    /* 3. FETCH SPECIFIC FORM DATA BASED ON CATEGORY */
     $form = [];
-    if ($category === 'checkup') {
-        $stmt = $conn->prepare("SELECT * FROM checkup_visits WHERE visit_id = ?");
-        $stmt->bind_param("i", $visit_id);
-    } elseif ($category === 'immunization') {
-        $stmt = $conn->prepare("SELECT * FROM immunization_visits WHERE visit_id = ?");
-        $stmt->bind_param("i", $visit_id);
-    } elseif ($category === 'family_planning' || $category === 'family planning') {
-        // Ginagamit ang source_id dahil ito ang primary key sa family_planning_visits table
-        $stmt = $conn->prepare("SELECT * FROM family_planning_visits WHERE id = ?");
-        $stmt->bind_param("i", $source_id);
-    }
+    $table_map = [
+        'checkup' => 'checkup_visits',
+        'immunization' => 'immunization_visits',
+        'family_planning' => 'family_planning_visits'
+    ];
 
-    if (isset($stmt)) {
+    if (array_key_exists($category, $table_map)) {
+        $table = $table_map[$category];
+        $stmt = $conn->prepare("SELECT * FROM $table WHERE visit_id=?");
+        $stmt->bind_param("i", $visit_id);
         $stmt->execute();
         $form = $stmt->get_result()->fetch_assoc();
     }
-
-    // Age Calculation
-    $birthdate = new DateTime($referral['birthdate']);
-    $age = (new DateTime())->diff($birthdate)->y;
 
 } catch (Exception $e) {
     die("Error: " . $e->getMessage());
@@ -68,6 +60,7 @@ try {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nurse Portal - View Referral</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -78,13 +71,15 @@ try {
         .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
         .pending { background: #fff3cd; color: #856404; }
         .viewed { background: #d1ecf1; color: #0c5460; }
-        
-        .section-title { font-size: 16px; font-weight: 600; color: #2a5298; margin: 25px 0 10px 0; border-left: 5px solid #2a5298; padding-left: 10px; }
+        .completed { background: #d4edda; color: #155724; }
+        .section-title { font-size: 16px; font-weight: 600; color: #2a5298; margin: 25px 0 10px 0; display: flex; align-items: center; }
+        .section-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: #2a5298; margin-right: 10px; border-radius: 2px; }
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         .info-card { background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #edf2f7; }
-        .label { font-size: 11px; color: #718096; text-transform: uppercase; display: block; margin-bottom: 4px; font-weight: 600; }
+        .label { font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
         .value { font-size: 15px; font-weight: 600; color: #2d3748; }
-        .risk-yes { color: #d32f2f; } /* Pula para sa alert */
+        .ml-box { background: #fff; border: 2px dashed #cbd5e0; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .btn-run { background: #2a5298; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -92,97 +87,63 @@ try {
 <div class="container">
     <div class="header">
         <div>
+            <span class="label">Patient Name</span>
             <div class="patient-name"><?= htmlspecialchars($referral['firstname'] . ' ' . $referral['lastname']) ?></div>
-            <small>Age: <?= $age ?> | Gender: <?= $referral['gender'] ?></small>
         </div>
-        <span class="status-badge <?= $referral['status'] ?>"><?= $referral['status'] ?></span>
+        <span class="status-badge <?= strtolower($referral['status']) ?>"><?= $referral['status'] ?></span>
     </div>
 
-    <!-- CATEGORY INDICATOR -->
-    <div class="info-grid" style="margin-bottom: 20px;">
-        <div class="info-card"><span class="label">Referral Type</span><div class="value"><?= strtoupper($category) ?></div></div>
+    <div class="section-title">General Information</div>
+    <div class="info-grid">
+        <div class="info-card"><span class="label">Gender</span><div class="value"><?= ucfirst($referral['gender']) ?></div></div>
+        <div class="info-card"><span class="label">Category</span><div class="value"><?= strtoupper($category) ?></div></div>
         <div class="info-card"><span class="label">Referral Date</span><div class="value"><?= date('M d, Y | h:i A', strtotime($referral['created_at'])) ?></div></div>
     </div>
 
+    <div class="section-title"><?= strtoupper($category) ?> Clinical Data</div>
+    
     <?php if ($form): ?>
-        
-        <!-- VITALS (COMMON TO MOST) -->
-        <div class="section-title">Clinical Vitals</div>
         <div class="info-grid">
-            <div class="info-card"><span class="label">Blood Pressure</span><div class="value"><?= $form['blood_pressure'] ?? 'N/A' ?></div></div>
-            <div class="info-card"><span class="label">Weight</span><div class="value"><?= $form['weight'] ?? '0' ?> kg</div></div>
-            <?php if(isset($form['heart_rate'])): ?><div class="info-card"><span class="label">Heart Rate</span><div class="value"><?= $form['heart_rate'] ?> bpm</div></div><?php endif; ?>
-        </div>
+            <div class="info-card"><span class="label">Blood Pressure</span><div class="value"><?= htmlspecialchars($form['blood_pressure'] ?? 'N/A') ?></div></div>
+            <div class="info-card"><span class="label">Heart Rate</span><div class="value"><?= htmlspecialchars($form['heart_rate'] ?? 'N/A') ?> bpm</div></div>
+            <div class="info-card"><span class="label">Weight</span><div class="value"><?= htmlspecialchars($form['weight'] ?? '0') ?> kg</div></div>
 
-        <!-- CATEGORY SPECIFIC DATA -->
+            <?php if ($category == 'checkup'): ?>
+                <div class="info-card"><span class="label">Temperature</span><div class="value"><?= htmlspecialchars($form['temperature'] ?? '0') ?> °C</div></div>
+                <div class="info-card"><span class="label">SpO2</span><div class="value"><?= htmlspecialchars($form['spo2'] ?? '0') ?>%</div></div>
+                <div class="info-card" style="grid-column: span 2;"><span class="label">Symptoms</span><div class="value"><?= nl2br(htmlspecialchars($form['symptoms'] ?? 'None')) ?></div></div>
 
-        <?php if ($category === 'checkup'): ?>
-            <div class="section-title">Checkup Findings</div>
-            <div class="info-grid">
-                <div class="info-card"><span class="label">Temperature</span><div class="value"><?= $form['temperature'] ?> °C</div></div>
-                <div class="info-card"><span class="label">SpO2</span><div class="value"><?= $form['spo2'] ?>%</div></div>
-                <div class="info-card"><span class="label">Symptoms Duration</span><div class="value"><?= $form['duration'] ?> Days</div></div>
-                <div class="info-card" style="grid-column: span 2;"><span class="label">Remarks</span><div class="value"><?= nl2br(htmlspecialchars($form['symptoms'])) ?></div></div>
-            </div>
+            <?php elseif ($category == 'immunization'): ?>
+                <div class="info-card"><span class="label">Vaccine</span><div class="value"><?= htmlspecialchars($form['vaccine_name'] ?? 'N/A') ?></div></div>
+                <div class="info-card" style="grid-column: span 2;"><span class="label">Allergy Notes</span><div class="value"><?= htmlspecialchars($form['allergy_notes'] ?? 'None') ?></div></div>
 
-        <?php elseif ($category === 'immunization'): ?>
-            <div class="section-title">Immunization Details</div>
-            <div class="info-grid">
-                <div class="info-card"><span class="label">Vaccine Name</span><div class="value"><?= $form['vaccine_name'] ?></div></div>
-                <div class="info-card"><span class="label">Has Allergy?</span><div class="value"><?= $form['has_allergy'] ?></div></div>
-                <div class="info-card" style="grid-column: span 2;"><span class="label">Allergy Notes</span><div class="value"><?= htmlspecialchars($form['allergy_notes'] ?: 'None') ?></div></div>
-            </div>
-
-        <?php elseif ($category === 'family_planning' || $category === 'family planning'): ?>
-            <div class="section-title">FP Method & History</div>
-            <div class="info-grid">
-                <div class="info-card"><span class="label">Method</span><div class="value"><?= $form['method'] ?></div></div>
-                <div class="info-card"><span class="label">LMP</span><div class="value"><?= $form['lmp'] ?></div></div>
-                <div class="info-card"><span class="label">No. of Children</span><div class="value"><?= $form['num_children'] ?></div></div>
-                <div class="info-card"><span class="label">Months on Method</span><div class="value"><?= $form['months_on_method'] ?></div></div>
-            </div>
-
-            <div class="section-title">Medical Screening (Risk Factors)</div>
-            <div class="info-grid">
-                <?php 
-                $risks = [
-                    'is_pregnant' => 'Pregnant?', 'is_breastfeeding' => 'Breastfeeding?', 
-                    'is_smoker' => 'Smoker?', 'has_hypertension' => 'Hypertension?', 
-                    'has_diabetes' => 'Diabetes?', 'has_blood_clots' => 'Blood Clots?', 
-                    'has_migraines' => 'Migraines?'
-                ];
-                foreach($risks as $key => $label): 
-                    $val = $form[$key] ?? 'No';
-                ?>
-                <div class="info-card">
-                    <span class="label"><?= $label ?></span>
-                    <div class="value <?= ($val == 'Yes') ? 'risk-yes' : '' ?>"><?= $val ?></div>
-                </div>
-                <?php endforeach; ?>
+            <?php elseif ($category == 'family_planning' || $category == 'FAMILY_PLANNING'): ?>
+                <div class="info-card"><span class="label">Method</span><div class="value"><?= htmlspecialchars($form['method'] ?? 'N/A') ?></div></div>
                 <div class="info-card" style="grid-column: span 2;">
-                    <span class="label">Side Effects / Notes</span>
-                    <div class="value"><?= nl2br(htmlspecialchars($form['side_effects'] ?? 'None')) ?></div>
+                    <span class="label">Clinical Notes</span>
+                    <div class="value">
+                        <?php 
+                            // Sinubukan nating i-check ang iba pang posibleng pangalan ng column para sa notes
+                            echo htmlspecialchars($form['fp_notes'] ?? $form['notes'] ?? $form['remarks'] ?? 'None'); 
+                        ?>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
-
-    <?php else: ?>
-        <div style="background: #fff5f5; color: #c53030; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #feb2b2;">
-            ⚠️ <strong>Data Fetching Error:</strong> Hindi mahanap ang detalye ng form sa database. Mangyaring i-check ang <u>visit_id</u> o <u>source_id</u>.
+            <?php endif; ?>
         </div>
+    <?php else: ?>
+        <p class="error-msg">⚠️ No clinical data found for this referral.</p>
     <?php endif; ?>
 
-    <!-- ML BUTTON -->
-    <div class="section-title">Analysis</div>
+    <div class="section-title">Machine Learning Recommendation</div>
     <div class="ml-box">
         <form action="checkup_ml.php" method="GET">
-            <input type="hidden" name="id" value="<?= $id ?>">
+            <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
             <button type="submit" class="btn-run">🚀 RUN ML ANALYSIS</button>
         </form>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="nurse_dashboard.php" style="color: #718096; text-decoration: none;">← Back to Dashboard</a>
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="nurse_dashboard.php" style="text-decoration: none; color: #718096; font-size: 14px;">← Back to Dashboard</a>
     </div>
 </div>
 
