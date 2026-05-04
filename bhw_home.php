@@ -95,11 +95,14 @@ h2 {
 <h2>📊 Dashboard Overview</h2>
 
 <div class="cards">
-
+    <!-- Card para sa Total Patients -->
+<a href="patient_list.php" style="text-decoration: none; color: inherit;">
     <div class="card">
-        <div class="num total"><?= $totalPatients ?></div>
-        <div class="lbl">Total Patients</div>
+        <h3>9</h3>
+        <p>Total Patients</p>
     </div>
+</a>
+
 
     <div class="card">
         <div class="num new"><?= $newPatients ?></div>
