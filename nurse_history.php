@@ -1,23 +1,28 @@
 <?php
-include 'db.php';
+session_start();
+include __DIR__ . '/db.php';
 
-try {
-    // Kukunin lang natin ang mga 'completed' na referrals
-    $stmt = $conn->prepare("
-        SELECT r.*, p.firstname, p.lastname, v.category, r.ml_result, r.created_at as referral_date
-        FROM referrals r
-        JOIN patients p ON p.id = r.patient_id
-        JOIN visits v ON v.id = r.visit_id
-        WHERE r.status = 'completed'
-        ORDER BY r.created_at DESC
-    ");
-    $stmt->execute();
-    $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Error: " . $e->getMessage());
+// Siguraduhin na Nurse lamang ang pwedeng makakita nito
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'nurse') {
+    header("Location: login.php");
+    exit();
 }
-?>
 
+// Query para makuha ang lahat ng referrals na tapos na o na-review na
+$stmt = $conn->prepare("
+    SELECT r.*, p.firstname, p.lastname, u.fullname as bhw_name
+    FROM referrals r
+    JOIN patients p ON r.patient_id = p.id
+    JOIN users u ON r.referred_by = u.id
+    ORDER BY r.created_at DESC
+");
+
+$stmt->execute();
+
+// MySQLi Fix: Gamitin ang get_result() bago ang fetch_all()
+$result = $stmt->get_result();
+$history = $result->fetch_all(MYSQLI_ASSOC);
+?>
 <!DOCTYPE html>
 <html>
 <head>
