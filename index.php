@@ -140,11 +140,7 @@ session_start();
         <p>Organize and track patient records بسهولة.</p>
     </div>
 
-    <div class="feature">
-        <h3>📅 Appointments</h3>
-        <p>Schedule and manage visits quickly.</p>
-    </div>
-
+    
     <div class="feature">
         <h3>🔐 Secure Access</h3>
         <p>Role-based login for Admin, BHW, and Nurse.</p>
