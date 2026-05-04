@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'bhw') {
-    header("Location: /HMS-2/login.php");
+    header("Location: login.php");
     exit();
 }
 ?>
