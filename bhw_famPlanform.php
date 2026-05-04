@@ -181,7 +181,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="form-group">
                 <label>Last Menstrual Period (LMP)</label>
-                <input type="date" name="lmp" required>
+                
+                <input type="date" name="lmp" required max="<?= date('Y-m-d') ?>">
             </div>
         </div>
         <div class="form-group" id="months_method_group" style="display:none;">
