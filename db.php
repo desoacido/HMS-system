@@ -1,13 +1,15 @@
 <?php
-$host     = 'localhost';
-$dbname   = 'hms2';          // ← your database name in phpMyAdmin
-$username = 'root';
-$password = '';              // ← blank by default in XAMPP
+$servername = "sql12.freesqldatabase.com"; // Mula sa Screenshot (328).png
+$username = "sql12824630";               // Mula sa Screenshot (328).png
+$password = "P3zrdTXyaX"; // Ang password mo sa FreeSQL
+$dbname = "sql12824630";                 // Mula sa Screenshot (328).png
 
-try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+// echo "Connected successfully"; 
 ?>
