@@ -2,11 +2,18 @@
 session_start();
 include __DIR__ . '/db.php';
 
-$patient_id = $_GET['patient_id'] ?? null;
-$category = $_GET['category'] ?? 'checkup';
+/**
+ * FIXED SECURITY CHECK:
+ * Ginagamit ang isset() para i-check kung may user_id bago ito i-assign.
+ */
+if (!isset($_SESSION['user_id'])) {
+    // Kung walang session, diretso sa login nang walang error
+    header("Location: login.php"); 
+    exit;
+}
 
-if (!$patient_id) {
-    die("Invalid patient.");
+$user_id = $_SESSION['user_id'];
+$patient_id = $_GET['patient_id'] ?? null;
 }
 
 /* 1. GET PATIENT INFO (MySQLi Style) */
