@@ -104,20 +104,7 @@ h2 {
 </a>
 
 
-   <a href="bhw_patientlist.php?filter=new" style="text-decoration: none; color: inherit;">
-        <div class="card">
-            <div class="num new"><?= $newPatients ?></div>
-            <div class="lbl">New Patients</div>
-        </div>
-    </a>
-
-    <!-- 3. Returning Patients -->
-    <a href="bhw_patientlist.php?filter=returning" style="text-decoration: none; color: inherit;">
-        <div class="card">
-            <div class="num returning"><?= $returningPatients ?></div>
-            <div class="lbl">Returning Patients</div>
-        </div>
-    </a>
+  
 </div>
 
 </div>
