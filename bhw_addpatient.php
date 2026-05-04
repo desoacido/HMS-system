@@ -15,16 +15,22 @@ if (isset($_POST['submit'])) {
     $blood_type    = $_POST['blood_type'];
     $registered_by = $_SESSION['user_id'];
 
+    // 1. Prepare the INSERT for patients
     $stmt = $conn->prepare("INSERT INTO patients 
         (firstname, lastname, birthdate, gender, address, contact, blood_type, registered_by) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$firstname, $lastname, $birthdate, $gender, $address, $contact, $blood_type, $registered_by]);
+    
+    // 2. Bind parameters (s = string, i = integer)
+    $stmt->bind_param("sssssssi", $firstname, $lastname, $birthdate, $gender, $address, $contact, $blood_type, $registered_by);
+    $stmt->execute();
 
-    $patient_id = $conn->lastInsertId();
+    // 3. FIX: Use $conn->insert_id for MySQLi
+    $patient_id = $conn->insert_id;
 
-    // LOG AS 1ST VISIT
+    // 4. LOG AS 1ST VISIT
     $stmt2 = $conn->prepare("INSERT INTO visits (patient_id, visit_number, attended_by) VALUES (?, 1, ?)");
-    $stmt2->execute([$patient_id, $registered_by]);
+    $stmt2->bind_param("ii", $patient_id, $registered_by);
+    $stmt2->execute();
 
     $saved = true;
     $patient_name = $firstname . ' ' . $lastname;
