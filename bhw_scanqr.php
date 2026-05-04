@@ -130,7 +130,7 @@ function onScanSuccess(decodedText) {
 
     if (!patientId) {
         // Not a valid patient QR
-        showAlert('alertInvalid', '⚠️ Invalid QR Code. Hindi ito QR ng pasyente sa system.');
+        showAlert('alertInvalid', '⚠️ Invalid QR Code. Not in the system.');
         setTimeout(() => resetScanner(), 3000);
         return;
     }
@@ -143,15 +143,15 @@ function onScanSuccess(decodedText) {
             showAlert('alertSuccess', '✅ Patient Found: ' + data.name + '<br><small>Redirecting...</small>');
             setTimeout(() => {
                 window.parent.document.querySelector('iframe[name="content"]').src = "patientprofile.php?id=" + patientId;
-            }, 1500);
+            }, 500);
         } else {
             showAlert('alertError', '❌ Patient not found in the system.');
-            setTimeout(() => resetScanner(), 3000);
+            setTimeout(() => resetScanner(), 500);
         }
     })
     .catch(() => {
-        showAlert('alertInvalid', '⚠️ Network error. Subukan ulit.');
-        setTimeout(() => resetScanner(), 3000);
+        showAlert('alertInvalid', '⚠️ Network error. Try again.');
+        setTimeout(() => resetScanner(), 500);
     });
 }
 
