@@ -3,7 +3,6 @@ session_start();
 include __DIR__ . '/db.php';
 
 /* ================= INPUT ================= */
-// Support both GET (?id=) and POST (form submission)
 $referral_id = $_GET['id'] ?? $_POST['referral_id'] ?? null;
 
 if (!$referral_id) {
@@ -17,8 +16,9 @@ $stmt = $conn->prepare("
     JOIN visits v ON v.id = r.visit_id 
     WHERE r.id = ?
 ");
-$stmt->execute([$referral_id]);
-$ref = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->bind_param("i", $referral_id); // MySQLi fix
+$stmt->execute();
+$ref = $stmt->get_result()->fetch_assoc(); // MySQLi fix
 
 if (!$ref) {
     die("Referral not found in database.");
@@ -29,24 +29,24 @@ $category = $ref['category'];
 
 /* ================= AUTO STATUS FLOW ================= */
 if ($ref['status'] === 'pending') {
-    $conn->prepare("
-        UPDATE referrals 
-        SET status='in_progress'
-        WHERE id=?
-    ")->execute([$referral_id]);
+    $upd = $conn->prepare("UPDATE referrals SET status='in_progress' WHERE id=?");
+    $upd->bind_param("i", $referral_id);
+    $upd->execute();
     $ref['status'] = 'in_progress';
 }
 
 /* ================= GET PATIENT ================= */
-$stmt = $conn->prepare("SELECT * FROM patients WHERE id=?");
-$stmt->execute([$ref['patient_id']]);
-$patient = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmtP = $conn->prepare("SELECT * FROM patients WHERE id=?");
+$stmtP->bind_param("i", $ref['patient_id']);
+$stmtP->execute();
+$patient = $stmtP->get_result()->fetch_assoc();
 
 /* ================= FETCH ALL DATA ================= */
 function getData($conn, $table, $visit_id) {
     $stmt = $conn->prepare("SELECT * FROM $table WHERE visit_id=?");
-    $stmt->execute([$visit_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    $stmt->bind_param("i", $visit_id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc() ?: [];
 }
 
 $checkup      = getData($conn, "checkup_visits", $visit_id);
@@ -109,12 +109,13 @@ if (!$ml) {
 }
 
 /* ================= SAVE RESULT ================= */
-$conn->prepare("
+$stmtSave = $conn->prepare("
     UPDATE referrals 
     SET ml_result = ?, status='completed'
     WHERE id=?
-")->execute([$ml, $referral_id]);
-
+");
+$stmtSave->bind_param("si", $ml, $referral_id);
+$stmtSave->execute();
 /* ================= DISPLAY RESULT (instead of redirect) ================= */
 $patientName = htmlspecialchars(($patient['firstname'] ?? '') . ' ' . ($patient['lastname'] ?? ''));
 
