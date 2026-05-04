@@ -142,7 +142,7 @@ function onScanSuccess(decodedText) {
         if (data.status === "found") {
             showAlert('alertSuccess', '✅ Patient Found: ' + data.name + '<br><small>Redirecting...</small>');
             setTimeout(() => {
-                window.top.location.href = "patientprofile.php?id=" + patientId;
+                window.parent.document.querySelector('iframe[name="content"]').src = "patientprofile.php?id=" + patientId;
             }, 1500);
         } else {
             showAlert('alertError', '❌ Patient not found in the system.');
